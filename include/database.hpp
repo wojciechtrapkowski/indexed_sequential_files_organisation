@@ -30,6 +30,13 @@ public:
     // void reorganise();
 
 private:
+    // Helper methods
+    std::optional<uint64_t> search_overflow_chain(size_t start_index, uint64_t key);
+    std::pair<size_t, size_t> find_overflow_position();
+    size_t insert_overflow_entry(size_t page_index, size_t entry_pos, uint64_t key, uint64_t value);
+    void link_overflow_entry(size_t start_index, size_t new_entry_index);
+    std::pair<size_t, size_t> find_index_position(uint64_t key);
+
     static constexpr std::string_view INDEX_FILE_PATH = "/Users/wojtektrapkowski/studia/semestr_5/struktury_baz_danych/projekt_2_indeksowo_sekwencyjne/data/index.db";
     static constexpr std::string_view MAIN_FILE_PATH = "/Users/wojtektrapkowski/studia/semestr_5/struktury_baz_danych/projekt_2_indeksowo_sekwencyjne/data/main.db";
     static constexpr std::string_view OVERFLOW_FILE_PATH = "/Users/wojtektrapkowski/studia/semestr_5/struktury_baz_danych/projekt_2_indeksowo_sekwencyjne/data/overflow.db";

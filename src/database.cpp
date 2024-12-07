@@ -75,102 +75,118 @@ void Database::print()
     }
 }
 
-std::optional<uint64_t> Database::search(uint64_t key)
+// Helper function to find entry in overflow chain
+std::optional<uint64_t> Database::search_overflow_chain(size_t start_index, uint64_t key)
 {
-    // Iterate over the indexes, to find page that we are interested in
+    size_t current_index = start_index;
+
+    while (current_index != -1ULL)
+    {
+        auto page = overflow_area.get_page(current_index / PAGE_SIZE);
+        auto &entry = page->entries[current_index % PAGE_SIZE];
+
+        if (entry.key == key)
+        {
+            return entry.value;
+        }
+        current_index = entry.overflow_entry_index;
+    }
+    return std::nullopt;
+}
+
+// Helper function to find non-full overflow page and get next entry position
+std::pair<size_t, size_t> Database::find_overflow_position()
+{
+    size_t overflow_page_index = 0;
+    auto overflow_page = overflow_area.get_page(overflow_page_index);
+    while (overflow_page->number_of_entries == PAGE_SIZE)
+    {
+        overflow_page_index++;
+        overflow_page = overflow_area.get_page(overflow_page_index);
+    }
+    return {overflow_page_index, overflow_page->number_of_entries};
+}
+
+// Helper function to insert into overflow area and return the entry index
+size_t Database::insert_overflow_entry(size_t page_index, size_t entry_pos, uint64_t key, uint64_t value)
+{
+    auto overflow_page = overflow_area.get_page(page_index);
+    overflow_page->entries[entry_pos] = {key, value, -1ULL};
+    overflow_page->number_of_entries++;
+    return PAGE_SIZE * page_index + entry_pos;
+}
+
+// Helper function to find the end of an overflow chain and link new entry
+void Database::link_overflow_entry(size_t start_index, size_t new_entry_index)
+{
+    size_t current_index = start_index;
+    while (true)
+    {
+        auto &entry = overflow_area.get_page(current_index / PAGE_SIZE)
+                          ->entries[current_index % PAGE_SIZE];
+        if (entry.overflow_entry_index == -1ULL)
+        {
+            entry.overflow_entry_index = new_entry_index;
+            break;
+        }
+        current_index = entry.overflow_entry_index;
+    }
+}
+
+// Helper function to find index position for a key
+std::pair<size_t, size_t> Database::find_index_position(uint64_t key)
+{
     size_t current_index_page_index = 0;
-    size_t entry_index_position = 0;
-    auto index_page = index_area.get_page(current_index_page_index);
+    size_t entry_index_position = -1ULL;
 
     while (current_index_page_index < index_area.get_header().number_of_pages)
     {
-        index_page = index_area.get_page(current_index_page_index);
+        auto index_page = index_area.get_page(current_index_page_index);
+
+        for (size_t i = 0; i < index_page->number_of_entries; ++i)
+        {
+            if (index_page->entries[i].start_key > key)
+            {
+                return {current_index_page_index, i > 0 ? i - 1 : -1ULL};
+            }
+            entry_index_position = i;
+        }
         current_index_page_index++;
+    }
+    return {current_index_page_index - 1, entry_index_position};
+}
 
-        size_t number_of_entries = index_page->number_of_entries;
-        for (size_t i = 0; i < number_of_entries; ++i)
-        {
-            auto entry = index_page->entries[i];
-            if (entry.start_key > key)
-            {
-                entry_index_position = i - 1;
-                break;
-            }
-            if (entry.start_key == key)
-            {
-                entry_index_position = i;
-                break;
-            }
-        }
+std::optional<uint64_t> Database::search(uint64_t key)
+{
+    auto [page_idx, entry_pos] = find_index_position(key);
 
-        if (entry_index_position != -1ULL)
-        {
-            break;
-        }
+    // Check guardian if no index entry found
+    if (entry_pos == -1ULL)
+    {
+        return guardian.overflow_page_index == -1ULL ? std::nullopt : search_overflow_chain(guardian.overflow_page_index, key);
     }
 
-    if (entry_index_position == -1ULL)
+    // Search in main area page
+    auto main_page = main_area.get_page(entry_pos);
+    for (size_t i = 0; i < main_page->number_of_entries; ++i)
     {
-        // If we did not find any page, we check guardian
-        if (guardian.overflow_page_index == -1ULL)
+        auto &entry = main_page->entries[i];
+
+        if (entry.key == key)
         {
-            return std::nullopt;
+            return entry.value;
         }
-
-        // If we found guardian, we need to search in overflow
-        auto overflow_page = overflow_area.get_page(guardian.overflow_page_index / PAGE_SIZE);
-        auto overflow_entry = overflow_page->entries[guardian.overflow_page_index % PAGE_SIZE];
-        if (overflow_entry.key == key)
+        if (entry.overflow_entry_index != -1ULL)
         {
-            return overflow_entry.value;
+            auto result = search_overflow_chain(entry.overflow_entry_index, key);
+            if (result)
+                return result;
         }
-
-        while (overflow_entry.overflow_entry_index != -1ULL)
-        {
-            overflow_entry = overflow_area.get_page(overflow_entry.overflow_entry_index / PAGE_SIZE)->entries[overflow_entry.overflow_entry_index % PAGE_SIZE];
-            if (overflow_entry.key == key)
-            {
-                return overflow_entry.value;
-            }
-        }
-
-        return std::nullopt;
-    }
-
-    // We are searching in page
-    auto main_area_page = main_area.get_page(entry_index_position);
-
-    for (size_t i = 0; i < main_area_page->number_of_entries; ++i)
-    {
-        if (main_area_page->entries[i].key == key)
-        {
-            return main_area_page->entries[i].value;
-        }
-        if (main_area_page->entries[i].overflow_entry_index != -1ULL)
-        {
-            auto overflow_page = overflow_area.get_page(main_area_page->entries[i].overflow_entry_index / PAGE_SIZE);
-            auto overflow_entry = overflow_page->entries[main_area_page->entries[i].overflow_entry_index % PAGE_SIZE];
-
-            if (overflow_entry.key == key)
-            {
-                return overflow_entry.value;
-            }
-
-            while (overflow_entry.overflow_entry_index != -1ULL)
-            {
-                overflow_entry = overflow_area.get_page(overflow_entry.overflow_entry_index / PAGE_SIZE)->entries[overflow_entry.overflow_entry_index % PAGE_SIZE];
-                if (overflow_entry.key == key)
-                {
-                    return overflow_entry.value;
-                }
-            }
-        }
-        if (main_area_page->entries[i].key > key)
+        if (entry.key > key)
         {
             return std::nullopt;
         }
     }
-
     return std::nullopt;
 }
 
@@ -181,138 +197,65 @@ void Database::insert(uint64_t key, uint64_t value)
         throw std::runtime_error("Key already exists");
     }
 
-    // Iterate over the indexes, to find page that we are interested in
-    size_t current_index_page_index = 0;
-    size_t entry_index_position = -1;
-    auto index_page = index_area.get_page(current_index_page_index);
+    auto [index_page_idx, entry_pos] = find_index_position(key);
+    auto index_page = index_area.get_page(0);
 
-    // Find the page that we are interested in
-    while (current_index_page_index < index_area.get_header().number_of_pages)
+    // Handle insertion into guardian (overflow area)
+    if (entry_pos == -1ULL)
     {
-        index_page = index_area.get_page(current_index_page_index);
-        current_index_page_index++;
+        auto [page_idx, pos] = find_overflow_position();
+        size_t new_entry_index = insert_overflow_entry(page_idx, pos, key, value);
 
-        size_t number_of_entries = index_page->number_of_entries;
-        for (size_t i = 0; i < number_of_entries; ++i)
-        {
-            if (key > index_page->entries[i].start_key)
-            {
-                entry_index_position = i;
-            }
-            if (index_page->entries[i].start_key > key)
-            {
-                break;
-            }
-        }
-    }
-
-    // If we did not find any page, we need to insert into guardian
-    if (entry_index_position == -1ULL)
-    {
-        // Insert into overflow
-
-        // Find non full overflow page
-        size_t overflow_page_index = 0;
-        auto overflow_page = overflow_area.get_page(overflow_page_index);
-        while (overflow_page->number_of_entries == PAGE_SIZE)
-        {
-            overflow_page_index++;
-            overflow_page = overflow_area.get_page(overflow_page_index);
-        }
-
-        // If overflow entry is null, we can insert new entry into overflow page
         if (guardian.overflow_page_index == -1ULL)
         {
-            overflow_page->entries[overflow_page->number_of_entries] = {key, value, -1ULL};
-            guardian.overflow_page_index = PAGE_SIZE * overflow_page_index + overflow_page->number_of_entries;
-            overflow_page->number_of_entries++;
-            return;
+            guardian.overflow_page_index = new_entry_index;
         }
-
-        // If overflow entry is not null, we need to find the end of the overflow chain
-
-        auto overflow_entry_index = guardian.overflow_page_index;
-        while (true)
+        else
         {
-            auto &overflow_entry = overflow_area.get_page(overflow_entry_index / PAGE_SIZE)->entries[overflow_entry_index % PAGE_SIZE];
-            if (overflow_entry.overflow_entry_index == -1ULL)
-            {
-                overflow_entry.overflow_entry_index = PAGE_SIZE * overflow_page_index + overflow_page->number_of_entries;
-                break;
-            }
-            overflow_entry_index = overflow_entry.overflow_entry_index;
+            link_overflow_entry(guardian.overflow_page_index, new_entry_index);
         }
-
-        // Insert new entry into page
-        overflow_page->entries[overflow_page->number_of_entries] = {key, value, -1ULL};
-        overflow_page->number_of_entries++;
         return;
     }
 
-    // If this is first insert, we need to insert into index root
+    // Handle first insert into index root
     if (index_page->entries[0].start_key == 0)
     {
-        index_page->entries[0].start_key = key;
-        index_page->entries[0].page_index = main_area.get_header().number_of_pages;
+        index_page->entries[0] = {key, main_area.get_header().number_of_pages};
         index_page->number_of_entries = 1;
     }
 
-    // We are inserting into page
-    auto main_area_page = main_area.get_page(entry_index_position);
+    // Insert into main area page
+    auto main_page = main_area.get_page(entry_pos);
+    size_t insert_pos = -1ULL;
 
-    size_t place_to_insert_index = -1ULL;
-    for (size_t i = 0; i < main_area_page->number_of_entries; ++i)
+    for (size_t i = 0; i < main_page->number_of_entries; ++i)
     {
-        if (main_area_page->entries[i].key > key)
+        if (main_page->entries[i].key > key)
         {
-            place_to_insert_index = i - 1;
+            insert_pos = i - 1;
             break;
         }
     }
 
-    // We can insert this record as the last record
-    if (place_to_insert_index == -1ULL)
+    // Insert as last record if possible
+    if (insert_pos == -1ULL)
     {
-        main_area_page->entries[main_area_page->number_of_entries] = {key, value, -1ULL};
-        main_area_page->number_of_entries++;
+        main_page->entries[main_page->number_of_entries] = {key, value, -1ULL};
+        main_page->number_of_entries++;
         return;
     }
 
-    // We need to insert this record in the overflow area
-    auto &entry = main_area_page->entries[place_to_insert_index];
+    // Insert into overflow area
+    auto [page_idx, pos] = find_overflow_position();
+    size_t new_entry_index = insert_overflow_entry(page_idx, pos, key, value);
+    auto &entry = main_page->entries[insert_pos];
 
-    // Find non full overflow page
-    size_t overflow_page_index = 0;
-    auto overflow_page = overflow_area.get_page(overflow_page_index);
-    while (overflow_page->number_of_entries == PAGE_SIZE)
-    {
-        overflow_page_index++;
-        overflow_page = overflow_area.get_page(overflow_page_index);
-    }
-
-    // If overflow entry is null, we can insert new entry into overflow page
     if (entry.overflow_entry_index == -1ULL)
     {
-        overflow_page->entries[overflow_page->number_of_entries] = {key, value, -1ULL};
-        entry.overflow_entry_index = PAGE_SIZE * overflow_page_index + overflow_page->number_of_entries;
-        overflow_page->number_of_entries++;
-        return;
+        entry.overflow_entry_index = new_entry_index;
     }
-
-    // If overflow entry is not null, we need to find the end of the overflow chain
-    size_t overflow_entry_index = entry.overflow_entry_index;
-    while (true)
+    else
     {
-        auto &overflow_entry = overflow_area.get_page(overflow_entry_index / PAGE_SIZE)->entries[overflow_entry_index % PAGE_SIZE];
-        if (overflow_entry.overflow_entry_index == -1ULL)
-        {
-            overflow_entry.overflow_entry_index = PAGE_SIZE * overflow_page_index + overflow_page->number_of_entries;
-            break;
-        }
-        overflow_entry_index = overflow_entry.overflow_entry_index;
+        link_overflow_entry(entry.overflow_entry_index, new_entry_index);
     }
-
-    // Insert new entry into page
-    overflow_page->entries[overflow_page->number_of_entries] = {key, value, -1ULL};
-    overflow_page->number_of_entries++;
 }
