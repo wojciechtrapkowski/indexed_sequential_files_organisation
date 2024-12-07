@@ -22,7 +22,7 @@ ScopedFile::ScopedFile(const std::string_view &path)
     else
     {
         // Open existing file
-        file.open(path.data(), std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);
+        file.open(path.data(), std::ios::in | std::ios::out | std::ios::binary);
         if (!file.is_open())
         {
             throw std::runtime_error("Failed to open file: " + std::string(path.data()));
@@ -44,13 +44,6 @@ bool ScopedFile::read(const void *data, size_t size, size_t offset)
     if (fileSize <= 0 || fileSize < offset + size)
     {
         std::cerr << "File is empty or too small to read " << size << " bytes at offset " << offset << std::endl;
-        return false;
-    }
-
-    // If file is too small, just return
-    if (file.seekg(0, std::ios::end).tellg() < offset + size)
-    {
-        std::cerr << "File is too small to read " << size << " bytes at offset " << offset << std::endl;
         return false;
     }
 

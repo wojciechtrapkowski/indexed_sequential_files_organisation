@@ -1,40 +1,28 @@
 #include <iostream>
-
-#include "page_buffer.hpp"
-struct Page
-{
-    size_t index;
-    uint64_t data; // in our case PESEL
-};
-
-struct Header
-{
-    size_t number_of_pages;
-};
-
-void create_pages(PageBuffer<Page, Header> &page_buffer)
-{
-    page_buffer.create_page();
-    page_buffer.create_page();
-    auto page = page_buffer.create_page();
-    page->data = 1234567890;
-}
-
-void load_pages(PageBuffer<Page, Header> &page_buffer)
-{
-    std::cout << "Loaded pages:" << std::endl;
-    std::cout << page_buffer.get_header().number_of_pages << std::endl;
-}
+#include "database.hpp"
 
 int main()
 {
-    PageBuffer<Page, Header> page_buffer("../data/test.txt");
-    create_pages(page_buffer);
-    // load_pages(page_buffer);
-    for (size_t i = 0; i < page_buffer.get_header().number_of_pages; ++i)
+    Database db;
+    Database::delete_files();
+    db.insert(3, 3);
+    db.insert(6, 6);
+    db.insert(4, 4);
+    db.insert(5, 5);
+    db.insert(2, 2);
+    db.insert(1, 1);
+    db.insert(0, 0);
+    for (size_t i = 0; i <= 10; ++i)
     {
-        auto page = page_buffer.get_page(i);
-        std::cout << "Page index: " << page->index << " Page data: " << page->data << std::endl;
+        std::cout << i << " " << (db.search(i).has_value() ? db.search(i).value() : -1) << std::endl;
+    }
+    db.insert(10, 10);
+    db.insert(7, 7);
+    db.insert(8, 8);
+    db.insert(9, 9);
+    for (size_t i = 0; i <= 10; ++i)
+    {
+        std::cout << i << " " << (db.search(i).has_value() ? db.search(i).value() : -1) << std::endl;
     }
     return 0;
 }

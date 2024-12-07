@@ -18,8 +18,13 @@ concept HasNumberOfPages = requires(T t) {
     { t.number_of_pages } -> std::convertible_to<size_t>;
 };
 
+template <typename T>
+concept HasNumberOfEntries = requires(T t) {
+    { t.number_of_entries } -> std::convertible_to<size_t>;
+};
+
 template <typename Page, typename Header>
-    requires HasIndex<Page> && HasNumberOfPages<Header>
+    requires HasIndex<Page> && HasNumberOfPages<Header> && HasNumberOfEntries<Page>
 class PageBuffer
 {
 public:
@@ -71,7 +76,7 @@ public:
         {
             // Header not found, create a new one
             header = Header();
-            pages[0] = std::make_shared<Page>();
+            pages[0] = create_page();
         }
         else
         {

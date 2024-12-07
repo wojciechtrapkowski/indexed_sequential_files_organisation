@@ -11,6 +11,7 @@ set(INCLUDE_DIR include)
 set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/scoped_file.cpp
+    ${SRC_DIR}/database.cpp
 )
 
 set(CMAKE_BUILD_TYPE Debug)
