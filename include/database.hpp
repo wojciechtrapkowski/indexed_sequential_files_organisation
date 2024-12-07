@@ -26,6 +26,8 @@ public:
 
     void insert(uint64_t key, uint64_t value);
 
+    void update(uint64_t key, uint64_t value);
+
     void remove(uint64_t key);
 
     void reorganise();

@@ -101,11 +101,24 @@ void CommandParser::process_command(const std::string &line)
     {
         database.reorganise();
     }
+    else if (command == "update")
+    {
+        uint64_t key, value;
+        if (iss >> key >> value)
+        {
+            database.update(key, value);
+        }
+    }
     else if (command == "help")
     {
         std::cout << "Available commands:\n"
                   << "  insert <key> <value>\n"
+                  << "  update <key> <value>\n"
                   << "  search <key>\n"
+                  << "  print\n"
+                  << "  remove <key>\n"
+                  << "  generate <number_of_keys>\n"
+                  << "  reorganise\n"
                   << "  help\n"
                   << "  exit/quit\n";
     }

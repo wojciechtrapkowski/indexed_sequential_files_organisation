@@ -15,3 +15,4 @@ In order to test my application I created simple tests:
 - Test 11 - test reorganisation with guardian
 - Test 12 - test automatic reorganisation 
 - Test 13 - test creation of new index page
+- Test 14 - test update operation

@@ -390,6 +390,16 @@ void Database::insert(uint64_t key, uint64_t value)
     }
 }
 
+void Database::update(uint64_t key, uint64_t value)
+{
+    auto entry = search_for_entry(key);
+    if (!entry)
+    {
+        return;
+    }
+    entry->get().value = value;
+}
+
 void Database::remove(uint64_t key)
 {
     auto entry = search_for_entry(key);
