@@ -23,7 +23,7 @@ set(SOURCES
     ${SRC_DIR}/utils.cpp
 )
 
-# add_compile_definitions(DEBUG_OUTPUT=1)
+add_compile_definitions(DEBUG_OUTPUT=1)
 
 # Create executable
 add_executable(${PROJECT_NAME} ${SOURCES})

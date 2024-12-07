@@ -1,0 +1,21 @@
+insert 1 100
+insert 2 200
+insert 3 300
+insert 4 400
+insert 5 500
+insert 6 600
+insert 7 700
+insert 8 800
+insert 9 900
+insert 10 1000
+insert 11 1100
+insert 12 1200
+insert 13 1300
+insert 14 1400
+insert 15 1500
+insert 16 1600
+insert 17 1700
+insert 18 1800
+insert 19 1900
+insert 20 2000
+print

@@ -1,0 +1,16 @@
+insert 3 300
+insert 5 500
+insert 4 400
+insert 6 600
+insert 9 900
+insert 8 800
+insert 7 700
+reorganise
+print
+search 3
+search 4
+search 5
+search 6
+search 7
+search 8
+search 9

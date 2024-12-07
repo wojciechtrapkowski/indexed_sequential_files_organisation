@@ -3,6 +3,7 @@
 #include <array>
 #include <concepts>
 #include <memory>
+#include <fstream>
 
 #include "scoped_file.hpp"
 #include "settings.hpp"
@@ -63,9 +64,10 @@ private:
     Header header;
     std::array<PagePtr, Settings::DEFAULT_PAGE_BUFFER_SIZE> pages;
     ScopedFile file;
+    std::string file_path;
 
 public:
-    PageBuffer(std::string_view file_path) : file(file_path)
+    PageBuffer(std::string_view file_path, bool truncate = false) : file(file_path, truncate), file_path(file_path)
     {
         pages.fill(nullptr);
 
@@ -93,7 +95,35 @@ public:
     PageBuffer &operator=(const PageBuffer &) = delete;
 
     PageBuffer(PageBuffer &&) = delete;
-    PageBuffer &operator=(PageBuffer &&) = delete;
+
+    PageBuffer &operator=(PageBuffer &&other)
+    {
+        if (this == &other)
+        {
+            return *this;
+        }
+
+        // Swap members
+        std::swap(header, other.header);
+        std::swap(pages, other.pages);
+
+        // Copy file contents from other's file to original file
+        std::ifstream src(other.file_path, std::ios::binary);
+        std::ofstream dst(file_path, std::ios::binary | std::ios::trunc);
+
+        if (!src || !dst)
+        {
+            throw std::runtime_error("Failed to copy file contents");
+        }
+
+        dst << src.rdbuf();
+
+        // Clear other's in-memory state but keep its file path
+        other.pages.fill(nullptr);
+        other.header = {};
+
+        return *this;
+    }
 
     Header &get_header()
     {

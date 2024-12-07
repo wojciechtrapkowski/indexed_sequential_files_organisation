@@ -1,0 +1,133 @@
+
+
+
+
+
+
+
+
+
+================================================
+Index area
+================================================
+Page 0 number of entries: 1
+	Entry 0
+		start_key: 4
+		page_index: 0
+================================================
+Main area
+================================================
+Guardian overflow page index: 3
+
+Page 0 number of entries: 5
+	Entry 0
+		key: 4
+		value: 400
+		overflow_entry_index: null
+	Entry 1
+		key: 5
+		value: 500
+		overflow_entry_index: null
+	Entry 2
+		key: 6
+		value: 600
+		overflow_entry_index: null
+	Entry 3
+		key: 7
+		value: 700
+		overflow_entry_index: 0
+	Entry 4
+		key: 9
+		value: 900
+		overflow_entry_index: null
+================================================
+Overflow area
+================================================
+Page 0 number of entries: 4
+	Entry 0
+		key: 8
+		value: 800
+		overflow_entry_index: null
+	Entry 1
+		key: 3
+		value: 300
+		overflow_entry_index: null
+	Entry 2
+		key: 2
+		value: 200
+		overflow_entry_index: 1
+	Entry 3
+		key: 1
+		value: 100
+		overflow_entry_index: 2
+================================================
+Index area
+================================================
+Page 0 number of entries: 3
+	Entry 0
+		start_key: 1
+		page_index: 0
+	Entry 1
+		start_key: 5
+		page_index: 1
+	Entry 2
+		start_key: 9
+		page_index: 2
+================================================
+Main area
+================================================
+Guardian overflow page index: null
+
+Page 0 number of entries: 4
+	Entry 0
+		key: 1
+		value: 100
+		overflow_entry_index: null
+	Entry 1
+		key: 2
+		value: 200
+		overflow_entry_index: null
+	Entry 2
+		key: 3
+		value: 300
+		overflow_entry_index: null
+	Entry 3
+		key: 4
+		value: 400
+		overflow_entry_index: null
+Page 1 number of entries: 4
+	Entry 0
+		key: 5
+		value: 500
+		overflow_entry_index: null
+	Entry 1
+		key: 6
+		value: 600
+		overflow_entry_index: null
+	Entry 2
+		key: 7
+		value: 700
+		overflow_entry_index: null
+	Entry 3
+		key: 8
+		value: 800
+		overflow_entry_index: null
+Page 2 number of entries: 1
+	Entry 0
+		key: 9
+		value: 900
+		overflow_entry_index: null
+================================================
+Overflow area
+================================================
+Page 0 number of entries: 0
+Page 1 number of entries: 0
+100
+200
+300
+400
+500
+600
+700
+800
+900

@@ -1,6 +1,8 @@
 #include "database.hpp"
 
+#include <cmath>
 #include <iostream>
+
 Database::Database()
     : index_area(Settings::INDEX_FILE_PATH), main_area(Settings::MAIN_FILE_PATH), overflow_area(Settings::OVERFLOW_FILE_PATH)
 {
@@ -9,6 +11,11 @@ Database::Database()
     {
         index_root->entries[0] = {0, 0};
         index_root->number_of_entries = 1;
+    }
+
+    for (size_t i = 1; i < Settings::INITIAL_NUMBER_OF_PAGES_IN_OVERFLOW_AREA; ++i)
+    {
+        overflow_area.create_page();
     }
 
     guardian = {main_area.get_header().overflow_page_index};
@@ -109,16 +116,17 @@ std::optional<std::reference_wrapper<PageEntry>> Database::search_overflow_chain
 }
 
 // Helper function to find non-full overflow page and get next entry position
-std::pair<size_t, size_t> Database::find_overflow_position()
+std::optional<std::pair<size_t, size_t>> Database::find_overflow_position()
 {
-    size_t overflow_page_index = 0;
-    auto overflow_page = overflow_area.get_page(overflow_page_index);
-    while (overflow_page->number_of_entries == Settings::PAGE_SIZE)
+    for (size_t i = 0; i < overflow_area.get_header().number_of_pages; ++i)
     {
-        overflow_page_index++;
-        overflow_page = overflow_area.get_page(overflow_page_index);
+        auto overflow_page = overflow_area.get_page(i);
+        if (overflow_page->number_of_entries < Settings::PAGE_SIZE)
+        {
+            return std::make_optional(std::make_pair(i, overflow_page->number_of_entries));
+        }
     }
-    return {overflow_page_index, overflow_page->number_of_entries};
+    return std::nullopt;
 }
 
 // Helper function to insert into overflow area and return the entry index
@@ -181,31 +189,46 @@ void Database::link_overflow_entry(uint64_t &start_index, size_t new_entry_index
 }
 
 // Helper function to find index position for a key
-std::pair<size_t, size_t> Database::find_index_position(uint64_t key)
+size_t Database::find_index_position(uint64_t key)
 {
-    size_t current_index_page_index = 0;
-    size_t entry_index_position = -1ULL;
-
-    while (current_index_page_index < index_area.get_header().number_of_pages)
+    // If key is smaller than first key in first page
+    auto first_page = index_area.get_page(0);
+    if (key < first_page->entries[0].start_key)
     {
-        auto index_page = index_area.get_page(current_index_page_index);
-
-        for (size_t i = 0; i < index_page->number_of_entries; ++i)
-        {
-            if (index_page->entries[i].start_key > key)
-            {
-                return {current_index_page_index, i > 0 ? i - 1 : -1ULL};
-            }
-            entry_index_position = i;
-        }
-        current_index_page_index++;
+        return -1ULL;
     }
-    return {current_index_page_index - 1, entry_index_position};
+
+    // Iterate through all index pages
+    for (size_t page_idx = 0; page_idx < index_area.get_header().number_of_pages; page_idx++)
+    {
+        auto index_page = index_area.get_page(page_idx);
+
+        // Check all entries in this page
+        for (size_t i = 0; i < index_page->number_of_entries - 1; i++)
+        {
+            if (key >= index_page->entries[i].start_key &&
+                key < index_page->entries[i + 1].start_key)
+            {
+                return index_page->entries[i].page_index;
+            }
+        }
+
+        // Check if it's in the last entry's range
+        if (page_idx == index_area.get_header().number_of_pages - 1)
+        {
+            // It's in the last range
+            return index_page->entries[index_page->number_of_entries - 1].page_index;
+        }
+    }
+
+    // If we get here, use the last entry of the last page
+    auto last_page = index_area.get_page(index_area.get_header().number_of_pages - 1);
+    return last_page->entries[last_page->number_of_entries - 1].page_index;
 }
 
 std::optional<std::reference_wrapper<PageEntry>> Database::search_for_entry(uint64_t key)
 {
-    auto [page_idx, entry_pos] = find_index_position(key);
+    auto entry_pos = find_index_position(key);
 
     // Check guardian if no index entry found
     if (entry_pos == -1ULL)
@@ -241,6 +264,30 @@ std::optional<std::reference_wrapper<PageEntry>> Database::search_for_entry(uint
     return std::nullopt;
 }
 
+std::vector<PageEntry> Database::gather_overflow_entries(size_t start_index)
+{
+    std::vector<PageEntry> entries;
+
+    size_t current_index = start_index;
+
+    while (current_index != -1ULL)
+    {
+        auto page = overflow_area.get_page(current_index / Settings::PAGE_SIZE);
+        auto &entry = page->entries[current_index % Settings::PAGE_SIZE];
+
+        if (entry.was_deleted)
+        {
+            current_index = entry.overflow_entry_index;
+            continue;
+        }
+
+        entries.push_back(entry);
+
+        current_index = entry.overflow_entry_index;
+    }
+    return entries;
+}
+
 std::optional<uint64_t> Database::search(uint64_t key)
 {
     auto entry = search_for_entry(key);
@@ -254,13 +301,23 @@ void Database::insert(uint64_t key, uint64_t value)
         throw std::runtime_error("Key already exists");
     }
 
-    auto [index_page_idx, entry_pos] = find_index_position(key);
+    auto entry_pos = find_index_position(key);
     auto index_page = index_area.get_page(0);
 
     // Handle insertion into guardian (overflow area)
     if (entry_pos == -1ULL)
     {
-        auto [page_idx, pos] = find_overflow_position();
+        auto overflow_pos = find_overflow_position();
+
+        // If overflow area is full, reorganise and try again
+        if (!overflow_pos)
+        {
+            std::cout << "Overflow area is full, reorganising" << std::endl;
+            reorganise();
+            return insert(key, value);
+        }
+
+        auto [page_idx, pos] = *overflow_pos;
         size_t new_entry_index = insert_overflow_entry(page_idx, pos, key, value);
 
         if (guardian.overflow_page_index == -1ULL)
@@ -277,7 +334,7 @@ void Database::insert(uint64_t key, uint64_t value)
     // Handle first insert into index root
     if (index_page->entries[0].start_key == 0)
     {
-        index_page->entries[0] = {key, main_area.get_header().number_of_pages};
+        index_page->entries[0] = {key, 0};
         index_page->number_of_entries = 1;
     }
 
@@ -311,7 +368,15 @@ void Database::insert(uint64_t key, uint64_t value)
     }
 
     // Insert into overflow area
-    auto [page_idx, pos] = find_overflow_position();
+    auto overflow_pos = find_overflow_position();
+    if (!overflow_pos)
+    {
+        std::cout << "Overflow area is full, reorganising" << std::endl;
+        reorganise();
+        return insert(key, value);
+    }
+    auto [page_idx, pos] = *overflow_pos;
+
     size_t new_entry_index = insert_overflow_entry(page_idx, pos, key, value);
     auto &entry = main_page->entries[insert_pos];
 
@@ -338,25 +403,89 @@ void Database::remove(uint64_t key)
 
 void Database::reorganise()
 {
-    // Create new areas
+    PageBuffer<IndexPage, Header> new_index_area(Settings::TEMP_INDEX_FILE_PATH, true);
+    PageBuffer<Page, MainAreaHeader> new_main_area(Settings::TEMP_MAIN_FILE_PATH, true);
+    PageBuffer<Page, Header> new_overflow_area(Settings::TEMP_OVERFLOW_FILE_PATH, true);
 
-    // Iteratate over main area pages
+    size_t index_page_counter = 0;
+    size_t main_page_counter = 0;
 
-    // Iterate over page entries
+    auto current_main_page = new_main_area.get_page(0);
+    auto current_index_page = new_index_area.get_page(0);
 
-    // Skip deleted entries
+    auto create_new_main_page = [&]()
+    {
+        if (current_main_page->number_of_entries == Settings::NUMBER_OF_ENTRIES_AFTER_REORGANISATION)
+        {
+            main_page_counter++;
+            current_main_page = new_main_area.create_page();
+        }
+    };
 
-    // Gather all entries in overflow area from this entry
+    // Setup main area
 
-    // Insert all entries into new main area page
+    for (size_t i = 0; i < main_area.get_header().number_of_pages; ++i)
+    {
+        size_t entries_per_page_counter = 0;
+        auto page = main_area.get_page(i);
+        for (size_t j = 0; j < page->number_of_entries; ++j)
+        {
+            auto entry = page->entries[j];
+            if (entry.was_deleted)
+            {
+                continue;
+            }
+            create_new_main_page();
 
-    // If we exceeded CONST move to another page
+            // Gather all entries in overflow area from this entry
+            auto all_entries = gather_overflow_entries(entry.overflow_entry_index);
+            all_entries.insert(all_entries.begin(), entry);
 
-    // So add new entry in index area
+            // Insert guardian entries first
+            if (i == 0 && j == 0)
+            {
+                auto guardian_entries = gather_overflow_entries(guardian.overflow_page_index);
+                all_entries.insert(all_entries.begin(), std::make_move_iterator(guardian_entries.begin()), std::make_move_iterator(guardian_entries.end()));
+            }
 
-    // Repeat until all pages are processed
+            while (entries_per_page_counter < all_entries.size())
+            {
+                current_main_page->entries[current_main_page->number_of_entries] = all_entries[entries_per_page_counter];
+                current_main_page->entries[current_main_page->number_of_entries].overflow_entry_index = -1ULL;
+                current_main_page->number_of_entries++;
+                entries_per_page_counter++;
+                if (current_main_page->number_of_entries == Settings::NUMBER_OF_ENTRIES_AFTER_REORGANISATION && entries_per_page_counter < all_entries.size())
+                {
+                    create_new_main_page();
+                }
+            }
 
-    // Update guardian overflow page index
+            entries_per_page_counter = 0;
+        }
+    }
 
-    // Move new areas into old areas
+    // Setup index area
+    for (size_t i = 0; i < new_main_area.get_header().number_of_pages; ++i)
+    {
+        auto page = new_main_area.get_page(i);
+        current_index_page->entries[current_index_page->number_of_entries] = {page->entries[0].key, page->index};
+        current_index_page->number_of_entries++;
+
+        if (current_index_page->number_of_entries == Settings::PAGE_SIZE)
+        {
+            current_index_page = new_index_area.create_page();
+        }
+    }
+
+    // Create pages for overflow area
+    for (size_t i = 1; i < std::ceil(new_main_area.get_header().number_of_pages * Settings::BETA); ++i)
+    {
+        new_overflow_area.create_page();
+    }
+
+    guardian.overflow_page_index = -1ULL;
+
+    index_area = std::move(new_index_area);
+    main_area = std::move(new_main_area);
+    overflow_area = std::move(new_overflow_area);
 }

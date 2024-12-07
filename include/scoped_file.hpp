@@ -6,7 +6,7 @@ struct ScopedFile
 {
     std::fstream file;
 
-    ScopedFile(const std::string_view &path);
+    ScopedFile(const std::string_view &path, bool truncate = false);
     ~ScopedFile();
 
     ScopedFile(const ScopedFile &) = delete;

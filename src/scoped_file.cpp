@@ -5,13 +5,13 @@
 #include <filesystem>
 #include <cstring>
 
-ScopedFile::ScopedFile(const std::string_view &path)
+ScopedFile::ScopedFile(const std::string_view &path, bool truncate)
     : path(path)
 {
     // First try to create directory if it doesn't exist
     std::filesystem::create_directories(std::filesystem::path(path).parent_path());
 
-    if (!std::filesystem::exists(path))
+    if (!std::filesystem::exists(path) || truncate)
     {
         // Create new file
         file.open(path.data(), std::ios::in | std::ios::out | std::ios::binary | std::ios::trunc);

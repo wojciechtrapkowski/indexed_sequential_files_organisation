@@ -97,6 +97,10 @@ void CommandParser::process_command(const std::string &line)
             }
         }
     }
+    else if (command == "reorganise")
+    {
+        database.reorganise();
+    }
     else if (command == "help")
     {
         std::cout << "Available commands:\n"
