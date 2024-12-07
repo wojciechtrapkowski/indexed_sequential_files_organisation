@@ -69,6 +69,10 @@ void CommandParser::process_command(const std::string &line)
             }
         }
     }
+    else if (command == "print")
+    {
+        database.print();
+    }
     else if (command == "help")
     {
         std::cout << "Available commands:\n"

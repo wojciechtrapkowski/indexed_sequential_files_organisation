@@ -19,6 +19,8 @@ public:
 
     static void delete_files();
 
+    void print();
+
     std::optional<uint64_t> search(uint64_t key);
 
     void insert(uint64_t key, uint64_t value);

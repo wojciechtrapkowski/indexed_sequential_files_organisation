@@ -1,5 +1,6 @@
 #include "database.hpp"
 
+#include <iostream>
 Database::Database()
     : index_area(INDEX_FILE_PATH), main_area(MAIN_FILE_PATH), overflow_area(OVERFLOW_FILE_PATH)
 {
@@ -24,6 +25,54 @@ void Database::delete_files()
     std::remove(INDEX_FILE_PATH.data());
     std::remove(MAIN_FILE_PATH.data());
     std::remove(OVERFLOW_FILE_PATH.data());
+}
+
+void Database::print()
+{
+    std::cout << "================================================" << std::endl;
+    std::cout << "Index area" << std::endl;
+    std::cout << "================================================" << std::endl;
+
+    for (size_t i = 0; i < index_area.get_header().number_of_pages; ++i)
+    {
+        auto page = index_area.get_page(i);
+        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
+        for (size_t j = 0; j < page->number_of_entries; ++j)
+        {
+            std::cout << "\tEntry " << j << "\n\t\tstart_key: " << page->entries[j].start_key << "\n\t\tpage_index: " << page->entries[j].page_index << std::endl;
+        }
+    }
+
+    std::cout << "================================================" << std::endl;
+    std::cout << "Main area" << std::endl;
+    std::cout << "================================================" << std::endl;
+
+    std::cout << "Guardian overflow page index: " << (guardian.overflow_page_index == -1ULL ? "null" : std::to_string(guardian.overflow_page_index)) << '\n'
+              << std::endl;
+
+    for (size_t i = 0; i < main_area.get_header().number_of_pages; ++i)
+    {
+        auto page = main_area.get_page(i);
+        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
+        for (size_t j = 0; j < page->number_of_entries; ++j)
+        {
+            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key << "\n\t\tvalue: " << page->entries[j].value << "\n\t\toverflow_entry_index: " << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index)) << std::endl;
+        }
+    }
+
+    std::cout << "================================================" << std::endl;
+    std::cout << "Overflow area" << std::endl;
+    std::cout << "================================================" << std::endl;
+
+    for (size_t i = 0; i < overflow_area.get_header().number_of_pages; ++i)
+    {
+        auto page = overflow_area.get_page(i);
+        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
+        for (size_t j = 0; j < page->number_of_entries; ++j)
+        {
+            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key << "\n\t\tvalue: " << page->entries[j].value << "\n\t \toverflow_entry_index: " << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index)) << std::endl;
+        }
+    }
 }
 
 std::optional<uint64_t> Database::search(uint64_t key)
