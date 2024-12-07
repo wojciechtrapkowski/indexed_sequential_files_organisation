@@ -1,0 +1,6 @@
+insert 10 2
+search 10
+insert 11 3
+search 11
+insert 12 4
+search 12

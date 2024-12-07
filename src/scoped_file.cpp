@@ -33,6 +33,7 @@ ScopedFile::ScopedFile(const std::string_view &path)
 
 ScopedFile::~ScopedFile()
 {
+    flush();
     file.close();
 }
 
@@ -56,8 +57,11 @@ bool ScopedFile::read(const void *data, size_t size, size_t offset)
 
 bool ScopedFile::write(const void *data, size_t size, size_t offset)
 {
+    file.seekg(0, std::ios::end);
+    std::streampos fileSize = file.tellg();
+
     // If file is too small, just return
-    if (file.tellg() < offset + size)
+    if (fileSize < offset + size)
     {
         resize(offset + size);
     }

@@ -9,6 +9,13 @@ struct Database
 {
 public:
     Database();
+    ~Database();
+
+    Database(const Database &) = delete;
+    Database &operator=(const Database &) = delete;
+
+    Database(Database &&) = delete;
+    Database &operator=(Database &&) = delete;
 
     static void delete_files();
 

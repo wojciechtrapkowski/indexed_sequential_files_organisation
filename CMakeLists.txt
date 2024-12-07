@@ -12,6 +12,7 @@ set(SOURCES
     ${SRC_DIR}/main.cpp
     ${SRC_DIR}/scoped_file.cpp
     ${SRC_DIR}/database.cpp
+    ${SRC_DIR}/command_parser.cpp
 )
 
 set(CMAKE_BUILD_TYPE Debug)

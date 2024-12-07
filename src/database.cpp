@@ -13,6 +13,12 @@ Database::Database()
     guardian = {main_area.get_header().overflow_page_index};
 }
 
+Database::~Database()
+{
+    auto &header = main_area.get_header();
+    header.overflow_page_index = guardian.overflow_page_index;
+}
+
 void Database::delete_files()
 {
     std::remove(INDEX_FILE_PATH.data());

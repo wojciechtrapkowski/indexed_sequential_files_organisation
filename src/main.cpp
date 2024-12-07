@@ -1,28 +1,32 @@
 #include <iostream>
 #include "database.hpp"
+#include "command_parser.hpp"
 
-int main()
+int main(int argc, char *argv[])
 {
-    Database db;
     Database::delete_files();
-    db.insert(3, 3);
-    db.insert(6, 6);
-    db.insert(4, 4);
-    db.insert(5, 5);
-    db.insert(2, 2);
-    db.insert(1, 1);
-    db.insert(0, 0);
-    for (size_t i = 0; i <= 10; ++i)
+    Database db;
+
+    try
     {
-        std::cout << i << " " << (db.search(i).has_value() ? db.search(i).value() : -1) << std::endl;
+        Database db;
+        CommandParser parser(db);
+
+        if (argc > 1)
+        {
+            // Process commands from file
+            parser.run_from_file(argv[1]);
+        }
+        else
+        {
+            // Interactive mode
+            parser.run_interactive();
+        }
     }
-    db.insert(10, 10);
-    db.insert(7, 7);
-    db.insert(8, 8);
-    db.insert(9, 9);
-    for (size_t i = 0; i <= 10; ++i)
+    catch (const std::exception &e)
     {
-        std::cout << i << " " << (db.search(i).has_value() ? db.search(i).value() : -1) << std::endl;
+        std::cerr << "Error: " << e.what() << std::endl;
+        return 1;
     }
     return 0;
 }
