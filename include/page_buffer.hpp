@@ -5,8 +5,7 @@
 #include <memory>
 
 #include "scoped_file.hpp"
-
-constexpr size_t DEFAULT_PAGE_BUFFER_SIZE = 3;
+#include "settings.hpp"
 
 template <typename T>
 concept HasIndex = requires(T t) {
@@ -62,7 +61,7 @@ private:
     }
 
     Header header;
-    std::array<PagePtr, DEFAULT_PAGE_BUFFER_SIZE> pages;
+    std::array<PagePtr, Settings::DEFAULT_PAGE_BUFFER_SIZE> pages;
     ScopedFile file;
 
 public:

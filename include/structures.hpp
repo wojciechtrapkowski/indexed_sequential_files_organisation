@@ -3,8 +3,7 @@
 #include <cstdint>
 #include <array>
 
-constexpr size_t PAGE_SIZE = 16;
-
+#include "settings.hpp"
 struct Guardian
 {
     uint64_t overflow_page_index = -1;
@@ -33,7 +32,7 @@ struct Page
 {
     uint64_t index = -1;
     uint64_t number_of_entries = 0;
-    std::array<PageEntry, PAGE_SIZE> entries;
+    std::array<PageEntry, Settings::PAGE_SIZE> entries;
 };
 
 struct IndexEntry
@@ -46,5 +45,5 @@ struct IndexPage
 {
     uint64_t index = -1;
     uint64_t number_of_entries = 0;
-    std::array<IndexEntry, PAGE_SIZE> entries;
+    std::array<IndexEntry, Settings::PAGE_SIZE> entries;
 };

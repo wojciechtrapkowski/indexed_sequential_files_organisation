@@ -4,6 +4,7 @@
 
 #include "command_parser.hpp"
 #include "debug.hpp"
+#include "utils.hpp"
 
 CommandParser::CommandParser(Database &db) : database(db) {}
 
@@ -81,6 +82,19 @@ void CommandParser::process_command(const std::string &line)
         if (iss >> key)
         {
             database.remove(key);
+        }
+    }
+    else if (command == "generate")
+    {
+        size_t number_of_keys;
+        if (iss >> number_of_keys)
+        {
+            // Number of keys should be checked before generating
+            auto [keys, values] = generate_keys_and_values(number_of_keys);
+            for (size_t i = 0; i < number_of_keys; i++)
+            {
+                database.insert(keys.extract(keys.begin()).value(), values.extract(values.begin()).value());
+            }
         }
     }
     else if (command == "help")

@@ -2,7 +2,7 @@
 
 #include <iostream>
 Database::Database()
-    : index_area(INDEX_FILE_PATH), main_area(MAIN_FILE_PATH), overflow_area(OVERFLOW_FILE_PATH)
+    : index_area(Settings::INDEX_FILE_PATH), main_area(Settings::MAIN_FILE_PATH), overflow_area(Settings::OVERFLOW_FILE_PATH)
 {
     auto index_root = index_area.get_page(0);
     if (index_root->number_of_entries == 0)
@@ -22,9 +22,9 @@ Database::~Database()
 
 void Database::delete_files()
 {
-    std::remove(INDEX_FILE_PATH.data());
-    std::remove(MAIN_FILE_PATH.data());
-    std::remove(OVERFLOW_FILE_PATH.data());
+    std::remove(Settings::INDEX_FILE_PATH.data());
+    std::remove(Settings::MAIN_FILE_PATH.data());
+    std::remove(Settings::OVERFLOW_FILE_PATH.data());
 }
 
 void Database::print()
@@ -90,8 +90,8 @@ std::optional<std::reference_wrapper<PageEntry>> Database::search_overflow_chain
 
     while (current_index != -1ULL)
     {
-        auto page = overflow_area.get_page(current_index / PAGE_SIZE);
-        auto &entry = page->entries[current_index % PAGE_SIZE];
+        auto page = overflow_area.get_page(current_index / Settings::PAGE_SIZE);
+        auto &entry = page->entries[current_index % Settings::PAGE_SIZE];
 
         if (entry.was_deleted)
         {
@@ -113,7 +113,7 @@ std::pair<size_t, size_t> Database::find_overflow_position()
 {
     size_t overflow_page_index = 0;
     auto overflow_page = overflow_area.get_page(overflow_page_index);
-    while (overflow_page->number_of_entries == PAGE_SIZE)
+    while (overflow_page->number_of_entries == Settings::PAGE_SIZE)
     {
         overflow_page_index++;
         overflow_page = overflow_area.get_page(overflow_page_index);
@@ -127,7 +127,7 @@ size_t Database::insert_overflow_entry(size_t page_index, size_t entry_pos, uint
     auto overflow_page = overflow_area.get_page(page_index);
     overflow_page->entries[entry_pos] = {key, value, -1ULL};
     overflow_page->number_of_entries++;
-    return PAGE_SIZE * page_index + entry_pos;
+    return Settings::PAGE_SIZE * page_index + entry_pos;
 }
 
 // Helper function to find the end of an overflow chain and link new entry
@@ -136,8 +136,8 @@ void Database::link_overflow_entry(size_t start_index, size_t new_entry_index)
     size_t current_index = start_index;
     while (true)
     {
-        auto &entry = overflow_area.get_page(current_index / PAGE_SIZE)
-                          ->entries[current_index % PAGE_SIZE];
+        auto &entry = overflow_area.get_page(current_index / Settings::PAGE_SIZE)
+                          ->entries[current_index % Settings::PAGE_SIZE];
         if (entry.overflow_entry_index == -1ULL)
         {
             entry.overflow_entry_index = new_entry_index;
@@ -262,11 +262,19 @@ void Database::insert(uint64_t key, uint64_t value)
     }
 
     // Insert as last record if possible
-    if (insert_pos == -1ULL)
+    if (main_page->number_of_entries < Settings::PAGE_SIZE)
     {
-        main_page->entries[main_page->number_of_entries] = {key, value, -1ULL};
-        main_page->number_of_entries++;
-        return;
+        if (insert_pos == -1ULL)
+        {
+            main_page->entries[main_page->number_of_entries] = {key, value, -1ULL};
+            main_page->number_of_entries++;
+            return;
+        }
+    }
+    else
+    {
+        // Insert in overflow, when main area is full
+        insert_pos = main_page->number_of_entries - 1;
     }
 
     // Insert into overflow area
@@ -294,3 +302,8 @@ void Database::remove(uint64_t key)
 
     entry->get().was_deleted = 1;
 }
+
+// void Database::reorganise()
+// {
+
+// }

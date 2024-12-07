@@ -20,6 +20,7 @@ set(SOURCES
     ${SRC_DIR}/scoped_file.cpp
     ${SRC_DIR}/database.cpp
     ${SRC_DIR}/command_parser.cpp
+    ${SRC_DIR}/utils.cpp
 )
 
 # add_compile_definitions(DEBUG_OUTPUT=1)
