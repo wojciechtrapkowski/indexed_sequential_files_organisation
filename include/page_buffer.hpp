@@ -48,6 +48,7 @@ private:
 
     Page get_page_from_disk(size_t index)
     {
+        read_counter++;
         Page page;
         if (!file.read(reinterpret_cast<char *>(&page), sizeof(Page), sizeof(Header) + index * sizeof(Page)))
         {
@@ -58,6 +59,7 @@ private:
 
     void write_page_to_disk(const Page &page)
     {
+        write_counter++;
         file.write(reinterpret_cast<const char *>(&page), sizeof(Page), sizeof(Header) + page.index * sizeof(Page));
     }
 
@@ -65,6 +67,9 @@ private:
     std::array<PagePtr, Settings::DEFAULT_PAGE_BUFFER_SIZE> pages;
     ScopedFile file;
     std::string file_path;
+
+    inline static size_t read_counter;
+    inline static size_t write_counter;
 
 public:
     PageBuffer(std::string_view file_path, bool truncate = false) : file(file_path, truncate), file_path(file_path)
@@ -124,6 +129,8 @@ public:
 
         return *this;
     }
+    static size_t get_read_count() { return read_counter; }
+    static size_t get_write_count() { return write_counter; }
 
     Header &get_header()
     {

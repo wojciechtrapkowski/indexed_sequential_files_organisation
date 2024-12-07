@@ -90,6 +90,21 @@ void Database::print()
     }
 }
 
+void Database::print_stats()
+{
+    std::cout << "Disk operations statistics:\n";
+    std::cout << "Index area reads: " << PageBuffer<IndexPage, Header>::get_read_count() << "\n";
+    std::cout << "Index area writes: " << PageBuffer<IndexPage, Header>::get_write_count() << "\n";
+
+    std::cout << "Main area reads: " << PageBuffer<Page, MainAreaHeader>::get_read_count() << "\n";
+    std::cout << "Main area writes: " << PageBuffer<Page, MainAreaHeader>::get_write_count() << "\n";
+
+    std::cout << "Overflow area reads: " << PageBuffer<Page, Header>::get_read_count() << "\n";
+    std::cout << "Overflow area writes: " << PageBuffer<Page, Header>::get_write_count() << "\n";
+
+    std::cout << "Combined reads: " << PageBuffer<IndexPage, Header>::get_read_count() + PageBuffer<Page, MainAreaHeader>::get_read_count() + PageBuffer<Page, Header>::get_read_count() << "\n";
+    std::cout << "Combined writes: " << PageBuffer<IndexPage, Header>::get_write_count() + PageBuffer<Page, MainAreaHeader>::get_write_count() + PageBuffer<Page, Header>::get_write_count() << std::endl;
+}
 // Helper function to find entry in overflow chain
 std::optional<std::reference_wrapper<PageEntry>> Database::search_overflow_chain(size_t start_index, uint64_t key)
 {
@@ -498,4 +513,11 @@ void Database::reorganise()
     index_area = std::move(new_index_area);
     main_area = std::move(new_main_area);
     overflow_area = std::move(new_overflow_area);
+}
+
+void Database::flush()
+{
+    index_area.flush();
+    main_area.flush();
+    overflow_area.flush();
 }

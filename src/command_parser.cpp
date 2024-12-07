@@ -55,6 +55,34 @@ void CommandParser::process_command(const std::string &line)
                 DEBUG_CERR << "Error: " << e.what() << std::endl;
             }
         }
+        else
+        {
+            std::cout << "Invalid command. Type 'help' for available commands.\n";
+        }
+    }
+    else if (command == "update")
+    {
+        uint64_t key, value;
+        if (iss >> key >> value)
+        {
+            database.update(key, value);
+        }
+        else
+        {
+            std::cout << "Invalid command. Type 'help' for available commands.\n";
+        }
+    }
+    else if (command == "flush")
+    {
+        database.flush();
+    }
+    else if (command == "remove")
+    {
+        uint64_t key;
+        if (iss >> key)
+        {
+            database.remove(key);
+        }
     }
     else if (command == "search")
     {
@@ -76,13 +104,9 @@ void CommandParser::process_command(const std::string &line)
     {
         database.print();
     }
-    else if (command == "remove")
+    else if (command == "print_stats")
     {
-        uint64_t key;
-        if (iss >> key)
-        {
-            database.remove(key);
-        }
+        database.print_stats();
     }
     else if (command == "generate")
     {
@@ -101,14 +125,6 @@ void CommandParser::process_command(const std::string &line)
     {
         database.reorganise();
     }
-    else if (command == "update")
-    {
-        uint64_t key, value;
-        if (iss >> key >> value)
-        {
-            database.update(key, value);
-        }
-    }
     else if (command == "help")
     {
         std::cout << "Available commands:\n"
@@ -116,6 +132,7 @@ void CommandParser::process_command(const std::string &line)
                   << "  update <key> <value>\n"
                   << "  search <key>\n"
                   << "  print\n"
+                  << "  print_stats\n"
                   << "  remove <key>\n"
                   << "  generate <number_of_keys>\n"
                   << "  reorganise\n"

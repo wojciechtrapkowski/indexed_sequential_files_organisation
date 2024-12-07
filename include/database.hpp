@@ -22,6 +22,8 @@ public:
 
     void print();
 
+    void print_stats();
+
     std::optional<uint64_t> search(uint64_t key);
 
     void insert(uint64_t key, uint64_t value);
@@ -31,6 +33,8 @@ public:
     void remove(uint64_t key);
 
     void reorganise();
+
+    void flush();
 
 private:
     // Helper methods
