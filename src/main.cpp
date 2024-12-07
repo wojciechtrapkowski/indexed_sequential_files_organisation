@@ -16,7 +16,6 @@ int main(int argc, char *argv[])
     {
         Database db;
         CommandParser parser(db);
-
         if (argc > 1)
         {
             // Process commands from file

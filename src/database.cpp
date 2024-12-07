@@ -206,8 +206,18 @@ void Database::link_overflow_entry(uint64_t &start_index, size_t new_entry_index
 // Helper function to find index position for a key
 size_t Database::find_index_position(uint64_t key)
 {
+    if (index_area.get_header().number_of_pages == 0)
+    {
+        return -1ULL;
+    }
+
     // If key is smaller than first key in first page
     auto first_page = index_area.get_page(0);
+    if (first_page->number_of_entries == 0)
+    {
+        return -1ULL;
+    }
+
     if (key < first_page->entries[0].start_key)
     {
         return -1ULL;
@@ -218,9 +228,21 @@ size_t Database::find_index_position(uint64_t key)
     {
         auto index_page = index_area.get_page(page_idx);
 
+        // Skip empty pages
+        if (index_page->number_of_entries <= 1)
+        {
+            continue;
+        }
+
         // Check all entries in this page
         for (size_t i = 0; i < index_page->number_of_entries - 1; i++)
         {
+            // Validate page_index before returning
+            if (index_page->entries[i].page_index >= main_area.get_header().number_of_pages)
+            {
+                throw std::runtime_error("Invalid page index in index entry");
+            }
+
             if (key >= index_page->entries[i].start_key &&
                 key < index_page->entries[i + 1].start_key)
             {
@@ -231,14 +253,29 @@ size_t Database::find_index_position(uint64_t key)
         // Check if it's in the last entry's range
         if (page_idx == index_area.get_header().number_of_pages - 1)
         {
-            // It's in the last range
-            return index_page->entries[index_page->number_of_entries - 1].page_index;
+            size_t last_idx = index_page->number_of_entries - 1;
+
+            // Validate last page_index
+            if (index_page->entries[last_idx].page_index >= main_area.get_header().number_of_pages)
+            {
+                throw std::runtime_error("Invalid last page index");
+            }
+
+            return index_page->entries[last_idx].page_index;
         }
     }
 
     // If we get here, use the last entry of the last page
     auto last_page = index_area.get_page(index_area.get_header().number_of_pages - 1);
-    return last_page->entries[last_page->number_of_entries - 1].page_index;
+    size_t last_idx = last_page->number_of_entries - 1;
+
+    // Validate final page_index
+    if (last_page->entries[last_idx].page_index >= main_area.get_header().number_of_pages)
+    {
+        throw std::runtime_error("Invalid final page index");
+    }
+
+    return last_page->entries[last_idx].page_index;
 }
 
 std::optional<std::reference_wrapper<PageEntry>> Database::search_for_entry(uint64_t key)

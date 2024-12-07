@@ -13,7 +13,7 @@ public:
     // Process commands from file
     void run_from_file(const std::string &filename);
 
-private:
+    // private:
     Database &database;
     void process_command(const std::string &line);
 };
