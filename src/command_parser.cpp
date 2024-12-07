@@ -1,7 +1,9 @@
-#include "command_parser.hpp"
 #include <iostream>
 #include <fstream>
 #include <sstream>
+
+#include "command_parser.hpp"
+#include "debug.hpp"
 
 CommandParser::CommandParser(Database &db) : database(db) {}
 
@@ -45,11 +47,11 @@ void CommandParser::process_command(const std::string &line)
             try
             {
                 database.insert(key, value);
-                std::cout << "Inserted: " << key << " -> " << value << std::endl;
+                std::cout << std::endl;
             }
             catch (const std::exception &e)
             {
-                std::cerr << "Error: " << e.what() << std::endl;
+                DEBUG_CERR << "Error: " << e.what() << std::endl;
             }
         }
     }
@@ -61,7 +63,7 @@ void CommandParser::process_command(const std::string &line)
             auto result = database.search(key);
             if (result)
             {
-                std::cout << "Found: " << key << " -> " << *result << std::endl;
+                std::cout << *result << std::endl;
             }
             else
             {

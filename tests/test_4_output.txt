@@ -1,0 +1,35 @@
+
+
+
+================================================
+Index area
+================================================
+Page 0 number of entries: 1
+	Entry 0
+		start_key: 20
+		page_index: 1
+================================================
+Main area
+================================================
+Guardian overflow page index: null
+
+Page 0 number of entries: 2
+	Entry 0
+		key: 20
+		value: 3
+		overflow_entry_index: 0
+	Entry 1
+		key: 30
+		value: 4
+		overflow_entry_index: null
+================================================
+Overflow area
+================================================
+Page 0 number of entries: 1
+	Entry 0
+		key: 21
+		value: 1
+	 	overflow_entry_index: null
+3
+4
+1

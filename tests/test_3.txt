@@ -1,0 +1,9 @@
+insert 20 3
+insert 10 2
+insert 8 1
+insert 7 0
+print
+search 20
+search 10
+search 8
+search 7

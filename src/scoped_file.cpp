@@ -1,4 +1,5 @@
 #include "scoped_file.hpp"
+#include "debug.hpp"
 
 #include <iostream>
 #include <filesystem>
@@ -44,7 +45,7 @@ bool ScopedFile::read(const void *data, size_t size, size_t offset)
 
     if (fileSize <= 0 || fileSize < offset + size)
     {
-        std::cerr << "File is empty or too small to read " << size << " bytes at offset " << offset << std::endl;
+        DEBUG_CERR << "File is empty or too small to read " << size << " bytes at offset " << offset << std::endl;
         return false;
     }
 

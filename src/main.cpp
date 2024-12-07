@@ -1,10 +1,17 @@
 #include <iostream>
+
 #include "database.hpp"
 #include "command_parser.hpp"
+#include "debug.hpp"
 
 int main(int argc, char *argv[])
 {
-    Database::delete_files();
+    if (argc > 1 && std::string(argv[1]) == "--clean")
+    {
+        Database::delete_files();
+        return 0;
+    }
+
     Database db;
 
     try
@@ -25,7 +32,7 @@ int main(int argc, char *argv[])
     }
     catch (const std::exception &e)
     {
-        std::cerr << "Error: " << e.what() << std::endl;
+        DEBUG_CERR << "Error: " << e.what() << std::endl;
         return 1;
     }
     return 0;
