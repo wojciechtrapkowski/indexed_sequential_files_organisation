@@ -39,7 +39,8 @@ void Database::print()
         std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
         for (size_t j = 0; j < page->number_of_entries; ++j)
         {
-            std::cout << "\tEntry " << j << "\n\t\tstart_key: " << page->entries[j].start_key << "\n\t\tpage_index: " << page->entries[j].page_index << std::endl;
+            std::cout << "\tEntry " << j << "\n\t\tstart_key: " << page->entries[j].start_key
+                      << "\n\t\tpage_index: " << page->entries[j].page_index << std::endl;
         }
     }
 
@@ -56,7 +57,11 @@ void Database::print()
         std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
         for (size_t j = 0; j < page->number_of_entries; ++j)
         {
-            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key << "\n\t\tvalue: " << page->entries[j].value << "\n\t\toverflow_entry_index: " << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index)) << std::endl;
+            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key
+                      << "\n\t\tvalue: " << page->entries[j].value
+                      << "\n\t\toverflow_entry_index: "
+                      << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index))
+                      << (page->entries[j].was_deleted ? "\n\t\tdeleted: true" : "") << std::endl;
         }
     }
 
@@ -70,13 +75,16 @@ void Database::print()
         std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
         for (size_t j = 0; j < page->number_of_entries; ++j)
         {
-            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key << "\n\t\tvalue: " << page->entries[j].value << "\n\t \toverflow_entry_index: " << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index)) << std::endl;
+            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key
+                      << "\n\t\tvalue: " << page->entries[j].value
+                      << "\n\t\toverflow_entry_index: " << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index))
+                      << (page->entries[j].was_deleted ? "\n\t\tdeleted: true" : "") << std::endl;
         }
     }
 }
 
 // Helper function to find entry in overflow chain
-std::optional<uint64_t> Database::search_overflow_chain(size_t start_index, uint64_t key)
+std::optional<std::reference_wrapper<PageEntry>> Database::search_overflow_chain(size_t start_index, uint64_t key)
 {
     size_t current_index = start_index;
 
@@ -85,9 +93,15 @@ std::optional<uint64_t> Database::search_overflow_chain(size_t start_index, uint
         auto page = overflow_area.get_page(current_index / PAGE_SIZE);
         auto &entry = page->entries[current_index % PAGE_SIZE];
 
+        if (entry.was_deleted)
+        {
+            current_index = entry.overflow_entry_index;
+            continue;
+        }
+
         if (entry.key == key)
         {
-            return entry.value;
+            return entry;
         }
         current_index = entry.overflow_entry_index;
     }
@@ -156,7 +170,7 @@ std::pair<size_t, size_t> Database::find_index_position(uint64_t key)
     return {current_index_page_index - 1, entry_index_position};
 }
 
-std::optional<uint64_t> Database::search(uint64_t key)
+std::optional<std::reference_wrapper<PageEntry>> Database::search_for_entry(uint64_t key)
 {
     auto [page_idx, entry_pos] = find_index_position(key);
 
@@ -171,10 +185,14 @@ std::optional<uint64_t> Database::search(uint64_t key)
     for (size_t i = 0; i < main_page->number_of_entries; ++i)
     {
         auto &entry = main_page->entries[i];
+        if (entry.was_deleted)
+        {
+            continue;
+        }
 
         if (entry.key == key)
         {
-            return entry.value;
+            return entry;
         }
         if (entry.overflow_entry_index != -1ULL)
         {
@@ -188,6 +206,12 @@ std::optional<uint64_t> Database::search(uint64_t key)
         }
     }
     return std::nullopt;
+}
+
+std::optional<uint64_t> Database::search(uint64_t key)
+{
+    auto entry = search_for_entry(key);
+    return entry ? std::make_optional(entry->get().value) : std::nullopt;
 }
 
 void Database::insert(uint64_t key, uint64_t value)
@@ -258,4 +282,15 @@ void Database::insert(uint64_t key, uint64_t value)
     {
         link_overflow_entry(entry.overflow_entry_index, new_entry_index);
     }
+}
+
+void Database::remove(uint64_t key)
+{
+    auto entry = search_for_entry(key);
+    if (!entry)
+    {
+        return;
+    }
+
+    entry->get().was_deleted = 1;
 }

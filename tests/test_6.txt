@@ -1,0 +1,5 @@
+insert 1 100
+insert 2 200
+remove 1
+search 1
+print

@@ -54,6 +54,7 @@
         "unordered_set": "cpp",
         "__tree": "cpp",
         "set": "cpp",
-        "filesystem": "cpp"
+        "filesystem": "cpp",
+        "__memory": "cpp"
     }
 }

@@ -26,15 +26,15 @@ Page 0 number of entries: 3
 	Entry 0
 		key: 10
 		value: 2
-	 	overflow_entry_index: 1
+		overflow_entry_index: 1
 	Entry 1
 		key: 8
 		value: 1
-	 	overflow_entry_index: 2
+		overflow_entry_index: 2
 	Entry 2
 		key: 7
 		value: 0
-	 	overflow_entry_index: null
+		overflow_entry_index: null
 3
 2
 1

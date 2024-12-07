@@ -25,13 +25,14 @@ public:
 
     void insert(uint64_t key, uint64_t value);
 
-    // void remove(uint64_t key);
+    void remove(uint64_t key);
 
     // void reorganise();
 
 private:
     // Helper methods
-    std::optional<uint64_t> search_overflow_chain(size_t start_index, uint64_t key);
+    std::optional<std::reference_wrapper<PageEntry>> search_for_entry(uint64_t key);
+    std::optional<std::reference_wrapper<PageEntry>> search_overflow_chain(size_t start_index, uint64_t key);
     std::pair<size_t, size_t> find_overflow_position();
     size_t insert_overflow_entry(size_t page_index, size_t entry_pos, uint64_t key, uint64_t value);
     void link_overflow_entry(size_t start_index, size_t new_entry_index);

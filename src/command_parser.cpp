@@ -75,6 +75,14 @@ void CommandParser::process_command(const std::string &line)
     {
         database.print();
     }
+    else if (command == "remove")
+    {
+        uint64_t key;
+        if (iss >> key)
+        {
+            database.remove(key);
+        }
+    }
     else if (command == "help")
     {
         std::cout << "Available commands:\n"

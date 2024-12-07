@@ -26,6 +26,7 @@ struct PageEntry
     uint64_t key = -1;
     uint64_t value = -1; // in our case PESEL
     uint64_t overflow_entry_index = -1;
+    uint64_t was_deleted = 0;
 };
 
 struct Page
