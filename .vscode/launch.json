@@ -7,7 +7,7 @@
             "request": "launch",
             "program": "${workspaceFolder}/build/SBD_2",
             "args": [
-                "/Users/wojtektrapkowski/studia/semestr_5/struktury_baz_danych/projekt_2_indeksowo_sekwencyjne/tests/test_8.txt"
+                // "/Users/wojtektrapkowski/studia/semestr_5/struktury_baz_danych/projekt_2_indeksowo_sekwencyjne/tests/test_8.txt"
             ],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,

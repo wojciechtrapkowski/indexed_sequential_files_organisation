@@ -27,7 +27,7 @@ public:
 
     void remove(uint64_t key);
 
-    // void reorganise();
+    void reorganise();
 
 private:
     // Helper methods
@@ -35,7 +35,7 @@ private:
     std::optional<std::reference_wrapper<PageEntry>> search_overflow_chain(size_t start_index, uint64_t key);
     std::pair<size_t, size_t> find_overflow_position();
     size_t insert_overflow_entry(size_t page_index, size_t entry_pos, uint64_t key, uint64_t value);
-    void link_overflow_entry(size_t start_index, size_t new_entry_index);
+    void link_overflow_entry(uint64_t &start_index, size_t new_entry_index);
     std::pair<size_t, size_t> find_index_position(uint64_t key);
 
     Guardian guardian;

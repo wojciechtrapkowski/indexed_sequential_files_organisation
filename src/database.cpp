@@ -130,20 +130,53 @@ size_t Database::insert_overflow_entry(size_t page_index, size_t entry_pos, uint
     return Settings::PAGE_SIZE * page_index + entry_pos;
 }
 
-// Helper function to find the end of an overflow chain and link new entry
-void Database::link_overflow_entry(size_t start_index, size_t new_entry_index)
+// Helper function to find the proper position in overflow chain for new entry
+void Database::link_overflow_entry(uint64_t &start_index, size_t new_entry_index)
 {
+    auto &new_entry = overflow_area.get_page(new_entry_index / Settings::PAGE_SIZE)
+                          ->entries[new_entry_index % Settings::PAGE_SIZE];
+    uint64_t new_key = new_entry.key;
+
     size_t current_index = start_index;
-    while (true)
+    size_t prev_index = -1ULL;
+
+    // Traverse the chain to find proper position
+    while (current_index != -1ULL)
     {
-        auto &entry = overflow_area.get_page(current_index / Settings::PAGE_SIZE)
-                          ->entries[current_index % Settings::PAGE_SIZE];
-        if (entry.overflow_entry_index == -1ULL)
+        auto &current_entry = overflow_area.get_page(current_index / Settings::PAGE_SIZE)
+                                  ->entries[current_index % Settings::PAGE_SIZE];
+
+        // Found position where new key should be inserted
+        if (current_entry.key > new_key)
         {
-            entry.overflow_entry_index = new_entry_index;
-            break;
+            // Insert between previous and current
+            if (prev_index != -1ULL)
+            {
+                auto &prev_entry = overflow_area.get_page(prev_index / Settings::PAGE_SIZE)
+                                       ->entries[prev_index % Settings::PAGE_SIZE];
+                new_entry.overflow_entry_index = current_index;
+                prev_entry.overflow_entry_index = new_entry_index;
+            }
+            else
+            {
+                // Insert at start
+                new_entry.overflow_entry_index = current_index;
+                start_index = new_entry_index;
+            }
+            return;
         }
-        current_index = entry.overflow_entry_index;
+
+        // Move to next entry
+        if (current_entry.overflow_entry_index == -1ULL)
+        {
+            // Append at end if we reached the end
+            current_entry.overflow_entry_index = new_entry_index;
+            new_entry.overflow_entry_index = -1ULL;
+            return;
+        }
+
+        prev_index = current_index;
+        current_index = current_entry.overflow_entry_index;
     }
 }
 
@@ -303,7 +336,27 @@ void Database::remove(uint64_t key)
     entry->get().was_deleted = 1;
 }
 
-// void Database::reorganise()
-// {
+void Database::reorganise()
+{
+    // Create new areas
 
-// }
+    // Iteratate over main area pages
+
+    // Iterate over page entries
+
+    // Skip deleted entries
+
+    // Gather all entries in overflow area from this entry
+
+    // Insert all entries into new main area page
+
+    // If we exceeded CONST move to another page
+
+    // So add new entry in index area
+
+    // Repeat until all pages are processed
+
+    // Update guardian overflow page index
+
+    // Move new areas into old areas
+}
