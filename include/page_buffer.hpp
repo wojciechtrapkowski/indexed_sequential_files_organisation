@@ -4,6 +4,7 @@
 #include <concepts>
 #include <memory>
 #include <fstream>
+#include <iostream>
 
 #include "scoped_file.hpp"
 #include "settings.hpp"
@@ -112,16 +113,15 @@ public:
         std::swap(header, other.header);
         std::swap(pages, other.pages);
 
-        // Copy file contents from other's file to original file
-        std::ifstream src(other.file_path, std::ios::binary);
-        std::ofstream dst(file_path, std::ios::binary | std::ios::trunc);
+        // Close handles
+        other.file.close();
+        file.close();
 
-        if (!src || !dst)
-        {
-            throw std::runtime_error("Failed to copy file contents");
-        }
+        std::remove(file_path.c_str());
+        std::rename(other.file_path.c_str(), file_path.c_str());
 
-        dst << src.rdbuf();
+        // Open file with new path
+        file.open(file_path);
 
         // Clear other's in-memory state but keep its file path
         other.pages.fill(nullptr);
@@ -129,6 +129,7 @@ public:
 
         return *this;
     }
+
     static size_t get_read_count() { return read_counter; }
     static size_t get_write_count() { return write_counter; }
 

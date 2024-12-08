@@ -8,7 +8,6 @@ enable_testing()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
-add_compile_options(-g)
 
 # Set directories
 set(SRC_DIR src)
@@ -23,7 +22,9 @@ set(SOURCES
     ${SRC_DIR}/utils.cpp
 )
 
-add_compile_definitions(DEBUG_OUTPUT=1)
+# Debugging
+# add_compile_options(-g)
+# add_compile_definitions(DEBUG_OUTPUT=1)
 
 # Create executable
 add_executable(${PROJECT_NAME} ${SOURCES})

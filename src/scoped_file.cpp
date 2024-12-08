@@ -34,8 +34,11 @@ ScopedFile::ScopedFile(const std::string_view &path, bool truncate)
 
 ScopedFile::~ScopedFile()
 {
-    flush();
-    file.close();
+    if (is_open)
+    {
+        flush();
+        file.close();
+    }
 }
 
 bool ScopedFile::read(const void *data, size_t size, size_t offset)
@@ -77,6 +80,19 @@ bool ScopedFile::write(const void *data, size_t size, size_t offset)
 void ScopedFile::flush()
 {
     file.flush();
+}
+
+void ScopedFile::close()
+{
+    flush();
+    file.close();
+    is_open = false;
+}
+
+void ScopedFile::open(const std::string_view &path)
+{
+    file.open(path.data(), std::ios::in | std::ios::out | std::ios::binary);
+    is_open = true;
 }
 
 void ScopedFile::reset_pointers()

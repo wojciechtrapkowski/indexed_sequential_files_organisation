@@ -17,11 +17,15 @@ struct ScopedFile
 
     bool read(const void *data, size_t size, size_t offset = 0);
     bool write(const void *data, size_t size, size_t offset = 0);
+
     void flush();
+    void close();
+    void open(const std::string_view &path);
 
 private:
     void reset_pointers();
     void resize(size_t new_size);
 
     std::string path;
+    bool is_open = true;
 };

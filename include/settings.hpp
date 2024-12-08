@@ -5,6 +5,8 @@
 
 namespace Settings
 {
+    // Test are written with PAGE_SIZE = 8
+    // constexpr size_t PAGE_SIZE = 4;
     constexpr size_t PAGE_SIZE = 4;
     constexpr size_t DEFAULT_PAGE_BUFFER_SIZE = 4;
 
@@ -20,8 +22,9 @@ namespace Settings
     constexpr size_t INITIAL_NUMBER_OF_PAGES_IN_OVERFLOW_AREA = 1;
 
     // How many pages should be in overflow area after reorganisation
-    constexpr double BETA = 0.5;
-
+    // Test are written with BETA = 0.5
+    constexpr double BETA = 1 / 8;
+    // constexpr double BETA = 0.5;
     // How many entries should be in a page after reorganisation
     constexpr double ALPHA = 0.5;
     constexpr size_t NUMBER_OF_ENTRIES_AFTER_REORGANISATION = ALPHA * PAGE_SIZE;
