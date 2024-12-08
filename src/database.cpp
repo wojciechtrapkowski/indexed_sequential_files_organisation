@@ -64,7 +64,7 @@ void Database::print()
 {
     clear_counters();
     print_wrapper();
-    // print_stats_after_operation(OperationType::PRINT);
+    print_stats_after_operation(OperationType::PRINT);
 }
 
 void Database::print_stats()
@@ -624,7 +624,7 @@ std::optional<uint64_t> Database::search(uint64_t key)
 {
     clear_counters();
     auto result = search_wrapper(key);
-    // print_stats_after_operation(OperationType::SEARCH);
+    print_stats_after_operation(OperationType::SEARCH);
 
     return result;
 }
@@ -633,14 +633,14 @@ void Database::insert(uint64_t key, uint64_t value)
 {
     clear_counters();
     insert_wrapper(key, value);
-    // print_stats_after_operation(OperationType::INSERT);
+    print_stats_after_operation(OperationType::INSERT);
 }
 
 void Database::update(uint64_t key, uint64_t value)
 {
     clear_counters();
     update_wrapper(key, value);
-    // print_stats_after_operation(OperationType::UPDATE);
+    print_stats_after_operation(OperationType::UPDATE);
 }
 
 void Database::remove(uint64_t key)
@@ -648,7 +648,7 @@ void Database::remove(uint64_t key)
     clear_counters();
 
     remove_wrapper(key);
-    // print_stats_after_operation(OperationType::REMOVE);
+    print_stats_after_operation(OperationType::REMOVE);
 }
 
 void Database::reorganise()
@@ -656,7 +656,7 @@ void Database::reorganise()
     clear_counters();
 
     reorganise_wrapper();
-    // print_stats_after_operation(OperationType::REORGANISE);
+    print_stats_after_operation(OperationType::REORGANISE);
 }
 
 void Database::flush()
