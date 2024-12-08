@@ -64,7 +64,7 @@ void Database::print()
 {
     clear_counters();
     print_wrapper();
-    print_stats_after_operation(OperationType::PRINT);
+    // print_stats_after_operation(OperationType::PRINT);
 }
 
 void Database::print_stats()
@@ -231,17 +231,29 @@ size_t Database::find_index_position(uint64_t key)
         }
 
         // Check if it's in the last entry's range
-        if (page_idx == index_area.get_header().number_of_pages - 1)
+        if (key >= index_page->entries[index_page->number_of_entries - 1].start_key)
         {
-            size_t last_idx = index_page->number_of_entries - 1;
-
-            // Validate last page_index
-            if (index_page->entries[last_idx].page_index >= main_area.get_header().number_of_pages)
+            // If this is not the last page, check if key is smaller than next page's first key
+            if (page_idx < index_area.get_header().number_of_pages - 1)
             {
-                throw std::runtime_error("Invalid last page index");
+                auto next_page = index_area.get_page(page_idx + 1);
+                if (next_page->number_of_entries > 0 && key < next_page->entries[0].start_key)
+                {
+                    return index_page->entries[index_page->number_of_entries - 1].page_index;
+                }
+                // If key is >= next page's first key, continue to next page
+                continue;
             }
-
-            return index_page->entries[last_idx].page_index;
+            else
+            {
+                // This is the last page, return its last entry
+                size_t last_idx = index_page->number_of_entries - 1;
+                if (index_page->entries[last_idx].page_index >= main_area.get_header().number_of_pages)
+                {
+                    throw std::runtime_error("Invalid last page index");
+                }
+                return index_page->entries[last_idx].page_index;
+            }
         }
     }
 
@@ -440,19 +452,19 @@ void Database::insert_wrapper(uint64_t key, uint64_t value)
     }
 
     // Insert as last record if possible
-    if (main_page->number_of_entries < Settings::PAGE_SIZE)
+    if (insert_pos == -1ULL)
     {
-        if (insert_pos == -1ULL)
+        if (main_page->number_of_entries < Settings::PAGE_SIZE)
         {
             main_page->entries[main_page->number_of_entries] = {key, value, -1ULL};
             main_page->number_of_entries++;
             return;
         }
-    }
-    else
-    {
-        // Insert in overflow, when main area is full
-        insert_pos = main_page->number_of_entries - 1;
+        else
+        {
+            // Insert in overflow, when main area is full
+            insert_pos = main_page->number_of_entries - 1;
+        }
     }
 
     // Insert into overflow area
@@ -612,7 +624,7 @@ std::optional<uint64_t> Database::search(uint64_t key)
 {
     clear_counters();
     auto result = search_wrapper(key);
-    print_stats_after_operation(OperationType::SEARCH);
+    // print_stats_after_operation(OperationType::SEARCH);
 
     return result;
 }
@@ -621,14 +633,14 @@ void Database::insert(uint64_t key, uint64_t value)
 {
     clear_counters();
     insert_wrapper(key, value);
-    print_stats_after_operation(OperationType::INSERT);
+    // print_stats_after_operation(OperationType::INSERT);
 }
 
 void Database::update(uint64_t key, uint64_t value)
 {
     clear_counters();
     update_wrapper(key, value);
-    print_stats_after_operation(OperationType::UPDATE);
+    // print_stats_after_operation(OperationType::UPDATE);
 }
 
 void Database::remove(uint64_t key)
@@ -636,7 +648,7 @@ void Database::remove(uint64_t key)
     clear_counters();
 
     remove_wrapper(key);
-    print_stats_after_operation(OperationType::REMOVE);
+    // print_stats_after_operation(OperationType::REMOVE);
 }
 
 void Database::reorganise()
@@ -644,7 +656,7 @@ void Database::reorganise()
     clear_counters();
 
     reorganise_wrapper();
-    print_stats_after_operation(OperationType::REORGANISE);
+    // print_stats_after_operation(OperationType::REORGANISE);
 }
 
 void Database::flush()

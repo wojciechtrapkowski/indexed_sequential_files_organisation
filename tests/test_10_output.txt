@@ -8,19 +8,25 @@
 ================================================
 Index area
 ================================================
-Page 0 number of entries: 2
+Page 0 number of entries: 4
 	Entry 0
 		start_key: 3
 		page_index: 0
 	Entry 1
-		start_key: 7
+		start_key: 5
 		page_index: 1
+	Entry 2
+		start_key: 7
+		page_index: 2
+	Entry 3
+		start_key: 9
+		page_index: 3
 ================================================
 Main area
 ================================================
 Guardian overflow page index: null
 
-Page 0 number of entries: 4
+Page 0 number of entries: 2
 	Entry 0
 		key: 3
 		value: 300
@@ -29,15 +35,16 @@ Page 0 number of entries: 4
 		key: 4
 		value: 400
 		overflow_entry_index: null
-	Entry 2
+Page 1 number of entries: 2
+	Entry 0
 		key: 5
 		value: 500
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 6
 		value: 600
 		overflow_entry_index: null
-Page 1 number of entries: 3
+Page 2 number of entries: 2
 	Entry 0
 		key: 7
 		value: 700
@@ -46,7 +53,8 @@ Page 1 number of entries: 3
 		key: 8
 		value: 800
 		overflow_entry_index: null
-	Entry 2
+Page 3 number of entries: 1
+	Entry 0
 		key: 9
 		value: 900
 		overflow_entry_index: null
@@ -54,6 +62,7 @@ Page 1 number of entries: 3
 Overflow area
 ================================================
 Page 0 number of entries: 0
+Page 1 number of entries: 0
 300
 400
 500

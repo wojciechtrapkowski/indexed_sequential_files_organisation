@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.11.18)  8 DEC 2024 22:23
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (TeX Live 2024) (preloaded format=pdflatex 2024.11.18)  8 DEC 2024 22:42
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -625,8 +625,7 @@ Package: seqsplit 2006/08/07 v0.1 Splitting long sequences (DNA, RNA, proteins, 
 File: l3backend-pdftex.def 2024-05-08 L3 backend support: PDF output (pdfTeX)
 \l__color_backend_stack_int=\count340
 \l__pdf_internal_box=\box73
-)
-No file report.aux.
+) (./report.aux)
 \openout1 = `report.aux'.
 
 LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 21.
@@ -649,7 +648,7 @@ LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 21.
 LaTeX Font Info:    ... okay on input line 21.
 LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 21.
 LaTeX Font Info:    ... okay on input line 21.
-(/usr/local/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+ (/usr/local/texlive/2024/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count341
 \scratchdimen=\dimen311
@@ -1014,10 +1013,10 @@ Package rerunfilecheck Info: Checksums for `report.out':
 (rerunfilecheck)             After:  2B548E94BCFE9CF51EA1AAE172072EA4;2131.
  ) 
 Here is how much of TeX's memory you used:
- 34445 strings out of 473362
- 801534 string characters out of 5720983
+ 34448 strings out of 473362
+ 801579 string characters out of 5720983
  1320900 words of memory out of 5000000
- 56972 multiletter control sequences out of 15000+600000
+ 56973 multiletter control sequences out of 15000+600000
  569799 words of font info for 66 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  99i,13n,107p,829b,645s stack positions out of 10000i,1000n,20000p,200000b,200000s

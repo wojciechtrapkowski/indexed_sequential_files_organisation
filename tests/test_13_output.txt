@@ -6,6 +6,9 @@
 
 
 
+Overflow area is full, reorganising
+
+
 
 
 
@@ -35,11 +38,9 @@ Overflow area is full, reorganising
 
 
 
+
+
 Overflow area is full, reorganising
-
-
-
-
 
 
 
@@ -68,41 +69,77 @@ Overflow area is full, reorganising
 ================================================
 Index area
 ================================================
-Page 0 number of entries: 8
+Page 0 number of entries: 4
 	Entry 0
 		start_key: 1
 		page_index: 0
 	Entry 1
-		start_key: 5
+		start_key: 3
 		page_index: 1
 	Entry 2
-		start_key: 9
+		start_key: 5
 		page_index: 2
 	Entry 3
-		start_key: 13
+		start_key: 7
 		page_index: 3
-	Entry 4
-		start_key: 17
+Page 1 number of entries: 4
+	Entry 0
+		start_key: 9
 		page_index: 4
-	Entry 5
-		start_key: 21
+	Entry 1
+		start_key: 11
 		page_index: 5
-	Entry 6
-		start_key: 25
+	Entry 2
+		start_key: 13
 		page_index: 6
-	Entry 7
-		start_key: 29
+	Entry 3
+		start_key: 15
 		page_index: 7
-Page 1 number of entries: 1
+Page 2 number of entries: 4
+	Entry 0
+		start_key: 17
+		page_index: 8
+	Entry 1
+		start_key: 19
+		page_index: 9
+	Entry 2
+		start_key: 21
+		page_index: 10
+	Entry 3
+		start_key: 23
+		page_index: 11
+Page 3 number of entries: 4
+	Entry 0
+		start_key: 25
+		page_index: 12
+	Entry 1
+		start_key: 27
+		page_index: 13
+	Entry 2
+		start_key: 29
+		page_index: 14
+	Entry 3
+		start_key: 31
+		page_index: 15
+Page 4 number of entries: 4
 	Entry 0
 		start_key: 33
-		page_index: 8
+		page_index: 16
+	Entry 1
+		start_key: 35
+		page_index: 17
+	Entry 2
+		start_key: 37
+		page_index: 18
+	Entry 3
+		start_key: 39
+		page_index: 19
 ================================================
 Main area
 ================================================
 Guardian overflow page index: null
 
-Page 0 number of entries: 4
+Page 0 number of entries: 2
 	Entry 0
 		key: 1
 		value: 100
@@ -111,15 +148,16 @@ Page 0 number of entries: 4
 		key: 2
 		value: 200
 		overflow_entry_index: null
-	Entry 2
+Page 1 number of entries: 2
+	Entry 0
 		key: 3
 		value: 300
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 4
 		value: 400
 		overflow_entry_index: null
-Page 1 number of entries: 4
+Page 2 number of entries: 2
 	Entry 0
 		key: 5
 		value: 500
@@ -128,15 +166,16 @@ Page 1 number of entries: 4
 		key: 6
 		value: 600
 		overflow_entry_index: null
-	Entry 2
+Page 3 number of entries: 2
+	Entry 0
 		key: 7
 		value: 700
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 8
 		value: 800
 		overflow_entry_index: null
-Page 2 number of entries: 4
+Page 4 number of entries: 2
 	Entry 0
 		key: 9
 		value: 900
@@ -145,15 +184,16 @@ Page 2 number of entries: 4
 		key: 10
 		value: 1000
 		overflow_entry_index: null
-	Entry 2
+Page 5 number of entries: 2
+	Entry 0
 		key: 11
 		value: 1100
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 12
 		value: 1200
 		overflow_entry_index: null
-Page 3 number of entries: 4
+Page 6 number of entries: 2
 	Entry 0
 		key: 13
 		value: 1300
@@ -162,15 +202,16 @@ Page 3 number of entries: 4
 		key: 14
 		value: 1400
 		overflow_entry_index: null
-	Entry 2
+Page 7 number of entries: 2
+	Entry 0
 		key: 15
 		value: 1500
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 16
 		value: 1600
 		overflow_entry_index: null
-Page 4 number of entries: 4
+Page 8 number of entries: 2
 	Entry 0
 		key: 17
 		value: 1700
@@ -179,15 +220,16 @@ Page 4 number of entries: 4
 		key: 18
 		value: 1800
 		overflow_entry_index: null
-	Entry 2
+Page 9 number of entries: 2
+	Entry 0
 		key: 19
 		value: 1900
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 20
 		value: 2000
 		overflow_entry_index: null
-Page 5 number of entries: 4
+Page 10 number of entries: 2
 	Entry 0
 		key: 21
 		value: 2100
@@ -196,15 +238,16 @@ Page 5 number of entries: 4
 		key: 22
 		value: 2200
 		overflow_entry_index: null
-	Entry 2
+Page 11 number of entries: 2
+	Entry 0
 		key: 23
 		value: 2300
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 24
 		value: 2400
 		overflow_entry_index: null
-Page 6 number of entries: 4
+Page 12 number of entries: 2
 	Entry 0
 		key: 25
 		value: 2500
@@ -213,15 +256,16 @@ Page 6 number of entries: 4
 		key: 26
 		value: 2600
 		overflow_entry_index: null
-	Entry 2
+Page 13 number of entries: 2
+	Entry 0
 		key: 27
 		value: 2700
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 28
 		value: 2800
 		overflow_entry_index: null
-Page 7 number of entries: 4
+Page 14 number of entries: 2
 	Entry 0
 		key: 29
 		value: 2900
@@ -230,15 +274,16 @@ Page 7 number of entries: 4
 		key: 30
 		value: 3000
 		overflow_entry_index: null
-	Entry 2
+Page 15 number of entries: 2
+	Entry 0
 		key: 31
 		value: 3100
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 32
 		value: 3200
 		overflow_entry_index: null
-Page 8 number of entries: 8
+Page 16 number of entries: 2
 	Entry 0
 		key: 33
 		value: 3300
@@ -247,135 +292,143 @@ Page 8 number of entries: 8
 		key: 34
 		value: 3400
 		overflow_entry_index: null
-	Entry 2
+Page 17 number of entries: 2
+	Entry 0
 		key: 35
 		value: 3500
 		overflow_entry_index: null
-	Entry 3
+	Entry 1
 		key: 36
 		value: 3600
 		overflow_entry_index: null
-	Entry 4
+Page 18 number of entries: 2
+	Entry 0
 		key: 37
 		value: 3700
 		overflow_entry_index: null
-	Entry 5
+	Entry 1
 		key: 38
 		value: 3800
 		overflow_entry_index: null
-	Entry 6
+Page 19 number of entries: 4
+	Entry 0
 		key: 39
 		value: 3900
 		overflow_entry_index: null
-	Entry 7
+	Entry 1
 		key: 40
 		value: 4000
+		overflow_entry_index: null
+	Entry 2
+		key: 41
+		value: 4100
+		overflow_entry_index: null
+	Entry 3
+		key: 42
+		value: 4200
 		overflow_entry_index: 0
 ================================================
 Overflow area
 ================================================
-Page 0 number of entries: 8
+Page 0 number of entries: 4
 	Entry 0
-		key: 41
-		value: 4100
-		overflow_entry_index: 1
-	Entry 1
-		key: 42
-		value: 4200
-		overflow_entry_index: 2
-	Entry 2
 		key: 43
 		value: 4300
-		overflow_entry_index: 3
-	Entry 3
+		overflow_entry_index: 1
+	Entry 1
 		key: 44
 		value: 4400
-		overflow_entry_index: 4
-	Entry 4
+		overflow_entry_index: 2
+	Entry 2
 		key: 45
 		value: 4500
-		overflow_entry_index: 5
-	Entry 5
+		overflow_entry_index: 3
+	Entry 3
 		key: 46
 		value: 4600
-		overflow_entry_index: 6
-	Entry 6
+		overflow_entry_index: 4
+Page 1 number of entries: 4
+	Entry 0
 		key: 47
 		value: 4700
-		overflow_entry_index: 7
-	Entry 7
+		overflow_entry_index: 5
+	Entry 1
 		key: 48
 		value: 4800
-		overflow_entry_index: 8
-Page 1 number of entries: 8
-	Entry 0
+		overflow_entry_index: 6
+	Entry 2
 		key: 49
 		value: 4900
-		overflow_entry_index: 9
-	Entry 1
+		overflow_entry_index: 7
+	Entry 3
 		key: 50
 		value: 5000
-		overflow_entry_index: 10
-	Entry 2
+		overflow_entry_index: 8
+Page 2 number of entries: 4
+	Entry 0
 		key: 51
 		value: 5100
-		overflow_entry_index: 11
-	Entry 3
+		overflow_entry_index: 9
+	Entry 1
 		key: 52
 		value: 5200
-		overflow_entry_index: 12
-	Entry 4
+		overflow_entry_index: 10
+	Entry 2
 		key: 53
 		value: 5300
-		overflow_entry_index: 13
-	Entry 5
+		overflow_entry_index: 11
+	Entry 3
 		key: 54
 		value: 5400
-		overflow_entry_index: 14
-	Entry 6
+		overflow_entry_index: 12
+Page 3 number of entries: 4
+	Entry 0
 		key: 55
 		value: 5500
-		overflow_entry_index: 15
-	Entry 7
+		overflow_entry_index: 13
+	Entry 1
 		key: 56
 		value: 5600
-		overflow_entry_index: 16
-Page 2 number of entries: 8
-	Entry 0
+		overflow_entry_index: 14
+	Entry 2
 		key: 57
 		value: 5700
-		overflow_entry_index: 17
-	Entry 1
+		overflow_entry_index: 15
+	Entry 3
 		key: 58
 		value: 5800
-		overflow_entry_index: 18
-	Entry 2
+		overflow_entry_index: 16
+Page 4 number of entries: 4
+	Entry 0
 		key: 59
 		value: 5900
-		overflow_entry_index: 19
-	Entry 3
+		overflow_entry_index: 17
+	Entry 1
 		key: 60
 		value: 6000
-		overflow_entry_index: 20
-	Entry 4
+		overflow_entry_index: 18
+	Entry 2
 		key: 61
 		value: 6100
-		overflow_entry_index: 21
-	Entry 5
+		overflow_entry_index: 19
+	Entry 3
 		key: 62
 		value: 6200
-		overflow_entry_index: 22
-	Entry 6
+		overflow_entry_index: 20
+Page 5 number of entries: 3
+	Entry 0
 		key: 63
 		value: 6300
-		overflow_entry_index: 23
-	Entry 7
+		overflow_entry_index: 21
+	Entry 1
 		key: 64
 		value: 6400
-		overflow_entry_index: 24
-Page 3 number of entries: 1
-	Entry 0
+		overflow_entry_index: 22
+	Entry 2
 		key: 65
 		value: 6500
 		overflow_entry_index: null
-Page 4 number of entries: 0
+Page 6 number of entries: 0
+Page 7 number of entries: 0
+Page 8 number of entries: 0
+Page 9 number of entries: 0
