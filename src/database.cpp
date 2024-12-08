@@ -465,6 +465,8 @@ void Database::remove(uint64_t key)
 
 void Database::reorganise()
 {
+    std::cout << "Reorganising" << std::endl;
+    print();
     PageBuffer<IndexPage, Header> new_index_area(Settings::TEMP_INDEX_FILE_PATH, true);
     PageBuffer<Page, MainAreaHeader> new_main_area(Settings::TEMP_MAIN_FILE_PATH, true);
     PageBuffer<Page, Header> new_overflow_area(Settings::TEMP_OVERFLOW_FILE_PATH, true);
@@ -533,7 +535,7 @@ void Database::reorganise()
         current_index_page->entries[current_index_page->number_of_entries] = {page->entries[0].key, page->index};
         current_index_page->number_of_entries++;
 
-        if (current_index_page->number_of_entries == Settings::PAGE_SIZE)
+        if (current_index_page->number_of_entries == Settings::PAGE_SIZE && i < new_main_area.get_header().number_of_pages - 1)
         {
             current_index_page = new_index_area.create_page();
         }
@@ -550,6 +552,9 @@ void Database::reorganise()
     index_area = std::move(new_index_area);
     main_area = std::move(new_main_area);
     overflow_area = std::move(new_overflow_area);
+
+    std::cout << "Reorganised" << std::endl;
+    print();
 }
 
 void Database::flush()
