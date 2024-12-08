@@ -1,0 +1,137 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{polski}
+\usepackage[polish]{babel}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{amsmath}
+\usepackage{hyperref}
+
+\title{Implementacja i analiza indeksowo-sekwencyjnej organizacji plików}
+\author{Wojciech Trapkowski}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Wprowadzenie}
+Celem projektu jest implementacja i analiza indeksowo-sekwencyjnej organizacji plików (ISAM - Indexed Sequential Access Method), która łączy zalety dostępu sekwencyjnego i bezpośredniego do danych. Metoda ta została opracowana przez IBM w latach 60-tych i do dziś stanowi podstawę wielu systemów bazodanowych.
+
+Podstawowe założenia tej organizacji plików obejmują:
+\begin{itemize}
+    \item Przechowywanie danych w uporządkowanej sekwencji rekordów, pogrupowanych w strony o stałym rozmiarze
+    \item Utrzymywanie oddzielnego pliku indeksowego, zawierającego klucze i wskaźniki do odpowiadających im stron w pliku głównym
+    \item Wykorzystanie obszaru przepełnień do obsługi nowych rekordów, których nie można umieścić w pierwotnie przydzielonych stronach
+    \item Okresową reorganizację pliku w celu optymalizacji jego struktury
+\end{itemize}
+
+Organizacja ISAM zapewnia wydajne operacje wyszukiwania dzięki indeksom, zachowując jednocześnie możliwość sekwencyjnego przetwarzania danych. Jest szczególnie efektywna w systemach, gdzie stosunek operacji odczytu do zapisu jest wysoki, a dane są względnie statyczne.
+
+\section{Struktury plików}
+\begin{itemize}    
+    \item Struktura pliku indeksowego zawiera strony indeksowe, gdzie każdy wpis składa się z klucza początkowego oraz wskaźnika do odpowiedniej strony w pliku głównym.
+
+    \item Struktura pliku głównego składa się z nagłówka zawierającego liczbę stron oraz wskaźnik do obszaru przepełnień (strażnika), a następnie sekwencji stron zawierających rekordy.
+    
+    \item Obszar przepełnień służy do przechowywania rekordów, które nie mogą być umieszczone w pierwotnie przydzielonych stronach. Każdy rekord w obszarze głównym może wskazywać na dodatkowe rekordy w obszarze przepełnień.
+    
+    \item Organizacja rekordów w stronach opiera się na strukturze Page, która zawiera stałą liczbę wpisów. Każdy wpis zawiera klucz, wartość (PESEL), wskaźnik do obszaru przepełnień oraz flagę usunięcia.
+\end{itemize}
+
+\section{Szczegóły implementacyjne}
+\subsection{Buforowanie w pamięci operacyjnej}
+\begin{itemize}
+    \item Mechanizm buforowania zaimplementowany jest w klasie PageBuffer, która wykorzystuje inteligentne wskaźniki do zarządzania stronami w pamięci.
+    
+    \item Wielkość bufora jest określona przez stałą, która definiuje maksymalną liczbę stron przechowywanych jednocześnie w pamięci.
+    
+    \item Strategia zastępowania stron opiera się na liczbie referencji do strony - usuwane są strony z pojedynczą referencją. Przed usunięciem strony z bufora, jej zawartość jest zapisywana na dysk.
+    
+    \item System śledzi liczbę operacji odczytu i zapisu poprzez liczniki.
+\end{itemize}
+
+\subsection{Parametry implementacyjne}
+\begin{itemize}
+    \item Rozmiar strony (PAGE\_SIZE) jest stałą określającą liczbę rekordów w pojedynczej stronie.
+    
+    \item Współczynnik wypełnienia ($\alpha$) określa maksymalną liczbę rekordów w stronie po reorganizacji.
+    
+    \item Współczynnik obszaru przepełnień ($\beta$) definiuje stosunek rozmiaru obszaru przepełnień do obszaru głównego
+    
+    \item Reorganizacja jest wykonywana gdy liczba rekordów w obszarze przepełnień przekroczy ustalony próg ($\gamma$).
+\end{itemize}
+
+\section{Format pliku testowego}
+\subsection{Struktura rekordu}
+W implementacji rekord jest reprezentowany jako pojedyncza liczba całkowita typu uint64\_t, przechowująca numer PESEL.
+
+\section{Prezentacja wyników}
+\subsection{Interfejs użytkownika}
+Program oferuje interaktywny interfejs wiersza poleceń oraz możliwość wykonywania komend z pliku. Dostępne są następujące tryby pracy:
+\begin{itemize}
+    \item Tryb interaktywny - oznaczony znakiem zachęty ">"
+    \item Tryb wsadowy - wykonywanie komend z pliku
+\end{itemize}
+
+\subsection{Dostępne komendy}
+Program obsługuje następujące polecenia:
+\begin{itemize}
+    \item \texttt{insert <klucz> <wartość>} - wstawia nowy rekord
+    \item \texttt{update <klucz> <wartość>} - aktualizuje istniejący rekord
+    \item \texttt{search <klucz>} - wyszukuje rekord o podanym kluczu
+    \item \texttt{remove <klucz>} - usuwa rekord o podanym kluczu
+    \item \texttt{print} - wyświetla zawartość całej bazy danych
+    \item \texttt{print\_stats} - wyświetla statystyki (liczba operacji I/O)
+    \item \texttt{generate <liczba\_kluczy>} - generuje zadaną liczbę losowych rekordów
+    \item \texttt{reorganise} - wymusza reorganizację struktury
+    \item \texttt{flush} - wymusza zapis buforowanych danych na dysk
+    \item \texttt{help} - wyświetla listę dostępnych komend
+    \item \texttt{exit}/\texttt{quit} - kończy działanie programu
+\end{itemize}
+
+\subsection{Format wyświetlania}
+\begin{itemize}
+    \item Wyniki wyszukiwania są wyświetlane w formacie: wartość rekordu lub komunikat "Not found" dla nieznalezionych kluczy
+    \item Błędy operacji są sygnalizowane odpowiednimi komunikatami
+    \item Statystyki pokazują liczbę operacji odczytu i zapisu wykonanych na dysku
+\end{itemize}
+
+\section{Eksperymenty}
+\subsection{Metodologia}
+\begin{itemize}
+    \item Opis przeprowadzonych testów
+    \item Badane parametry
+    \item Mierzone metryki
+\end{itemize}
+
+\subsection{Wyniki}
+\subsubsection{Wpływ rozmiaru strony}
+[Tu umieść wykresy i analizę wpływu rozmiaru strony]
+
+\subsubsection{Wpływ współczynnika $\alpha$}
+[Tu umieść wykresy i analizę wpływu współczynnika wypełnienia]
+
+\subsubsection{Wpływ współczynnika $\beta$}
+[Tu umieść wykresy i analizę wpływu rozmiaru obszaru przepełnień]
+
+\subsection{Analiza złożoności operacji}
+\begin{itemize}
+    \item Wstawianie
+    \item Wyszukiwanie
+    \item Usuwanie
+    \item Reorganizacja
+\end{itemize}
+
+\section{Wnioski}
+\begin{itemize}
+    \item Optymalne wartości parametrów
+    \item Zalecane zastosowania
+    \item Ograniczenia metody
+\end{itemize}
+
+\section{Bibliografia}
+\begin{thebibliography}{9}
+    % Tu dodaj źródła
+\end{thebibliography}
+
+\end{document}

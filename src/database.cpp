@@ -3,6 +3,32 @@
 #include <cmath>
 #include <iostream>
 
+std::ostream &operator<<(std::ostream &os, OperationType operation)
+{
+    switch (operation)
+    {
+    case OperationType::SEARCH:
+        os << "SEARCH";
+        break;
+    case OperationType::INSERT:
+        os << "INSERT";
+        break;
+    case OperationType::UPDATE:
+        os << "UPDATE";
+        break;
+    case OperationType::REMOVE:
+        os << "REMOVE";
+        break;
+    case OperationType::REORGANISE:
+        os << "REORGANISE";
+        break;
+    case OperationType::PRINT:
+        os << "PRINT";
+        break;
+    }
+    return os;
+}
+
 Database::Database()
     : index_area(Settings::INDEX_FILE_PATH), main_area(Settings::MAIN_FILE_PATH), overflow_area(Settings::OVERFLOW_FILE_PATH)
 {
@@ -36,74 +62,25 @@ void Database::delete_files()
 
 void Database::print()
 {
-    std::cout << "================================================" << std::endl;
-    std::cout << "Index area" << std::endl;
-    std::cout << "================================================" << std::endl;
-
-    for (size_t i = 0; i < index_area.get_header().number_of_pages; ++i)
-    {
-        auto page = index_area.get_page(i);
-        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
-        for (size_t j = 0; j < page->number_of_entries; ++j)
-        {
-            std::cout << "\tEntry " << j << "\n\t\tstart_key: " << page->entries[j].start_key
-                      << "\n\t\tpage_index: " << page->entries[j].page_index << std::endl;
-        }
-    }
-
-    std::cout << "================================================" << std::endl;
-    std::cout << "Main area" << std::endl;
-    std::cout << "================================================" << std::endl;
-
-    std::cout << "Guardian overflow page index: " << (guardian.overflow_page_index == -1ULL ? "null" : std::to_string(guardian.overflow_page_index)) << '\n'
-              << std::endl;
-
-    for (size_t i = 0; i < main_area.get_header().number_of_pages; ++i)
-    {
-        auto page = main_area.get_page(i);
-        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
-        for (size_t j = 0; j < page->number_of_entries; ++j)
-        {
-            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key
-                      << "\n\t\tvalue: " << page->entries[j].value
-                      << "\n\t\toverflow_entry_index: "
-                      << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index))
-                      << (page->entries[j].was_deleted ? "\n\t\tdeleted: true" : "") << std::endl;
-        }
-    }
-
-    std::cout << "================================================" << std::endl;
-    std::cout << "Overflow area" << std::endl;
-    std::cout << "================================================" << std::endl;
-
-    for (size_t i = 0; i < overflow_area.get_header().number_of_pages; ++i)
-    {
-        auto page = overflow_area.get_page(i);
-        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
-        for (size_t j = 0; j < page->number_of_entries; ++j)
-        {
-            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key
-                      << "\n\t\tvalue: " << page->entries[j].value
-                      << "\n\t\toverflow_entry_index: " << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index))
-                      << (page->entries[j].was_deleted ? "\n\t\tdeleted: true" : "") << std::endl;
-        }
-    }
+    clear_counters();
+    print_wrapper();
+    print_stats_after_operation(OperationType::PRINT);
 }
 
 void Database::print_stats()
 {
     std::cout << "Disk operations statistics:\n";
-    std::cout << "Index area reads: " << PageBuffer<IndexPage, Header>::get_read_count() << "\n";
-    std::cout << "Index area writes: " << PageBuffer<IndexPage, Header>::get_write_count() << "\n";
+    std::cout << "Index area reads: " << PageBuffer<IndexPage, Header>::get_all_read_count() << "\n";
+    std::cout << "Index area writes: " << PageBuffer<IndexPage, Header>::get_all_write_count() << "\n";
 
-    std::cout << "Main area reads: " << PageBuffer<Page, MainAreaHeader>::get_read_count() << "\n";
-    std::cout << "Main area writes: " << PageBuffer<Page, MainAreaHeader>::get_write_count() << "\n";
+    std::cout << "Main area reads: " << PageBuffer<Page, MainAreaHeader>::get_all_read_count() << "\n";
+    std::cout << "Main area writes: " << PageBuffer<Page, MainAreaHeader>::get_all_write_count() << "\n";
 
-    std::cout << "Overflow area reads: " << PageBuffer<Page, Header>::get_read_count() << "\n";
-    std::cout << "Overflow area writes: " << PageBuffer<Page, Header>::get_write_count() << "\n";
+    std::cout << "Overflow area reads: " << PageBuffer<Page, Header>::get_all_read_count() << "\n";
+    std::cout << "Overflow area writes: " << PageBuffer<Page, Header>::get_all_write_count() << "\n";
 
-    std::cout << "Combined reads: " << PageBuffer<IndexPage, Header>::get_read_count() + PageBuffer<Page, MainAreaHeader>::get_read_count() + PageBuffer<Page, Header>::get_read_count() << "\n";
-    std::cout << "Combined writes: " << PageBuffer<IndexPage, Header>::get_write_count() + PageBuffer<Page, MainAreaHeader>::get_write_count() + PageBuffer<Page, Header>::get_write_count() << std::endl;
+    std::cout << "Combined reads: " << PageBuffer<IndexPage, Header>::get_all_read_count() + PageBuffer<Page, MainAreaHeader>::get_all_read_count() + PageBuffer<Page, Header>::get_all_read_count() << "\n";
+    std::cout << "Combined writes: " << PageBuffer<IndexPage, Header>::get_all_write_count() + PageBuffer<Page, MainAreaHeader>::get_all_write_count() + PageBuffer<Page, Header>::get_all_write_count() << std::endl;
 }
 // Helper function to find entry in overflow chain
 std::optional<std::reference_wrapper<PageEntry>> Database::search_overflow_chain(size_t start_index, uint64_t key)
@@ -130,18 +107,21 @@ std::optional<std::reference_wrapper<PageEntry>> Database::search_overflow_chain
     return std::nullopt;
 }
 
-// Helper function to find non-full overflow page and get next entry position
-std::optional<std::pair<size_t, size_t>> Database::find_overflow_position()
+std::tuple<std::optional<std::pair<size_t, size_t>>, double> Database::find_overflow_position()
 {
+    std::optional<std::pair<size_t, size_t>> result = std::nullopt;
+    size_t overflow_area_number_of_entries = 0;
+
     for (size_t i = 0; i < overflow_area.get_header().number_of_pages; ++i)
     {
         auto overflow_page = overflow_area.get_page(i);
-        if (overflow_page->number_of_entries < Settings::PAGE_SIZE)
+        if (result == std::nullopt && overflow_page->number_of_entries < Settings::PAGE_SIZE)
         {
-            return std::make_optional(std::make_pair(i, overflow_page->number_of_entries));
+            result = std::make_pair(i, overflow_page->number_of_entries);
         }
+        overflow_area_number_of_entries += overflow_page->number_of_entries;
     }
-    return std::nullopt;
+    return std::make_tuple(result, static_cast<double>(overflow_area_number_of_entries) / (overflow_area.get_header().number_of_pages * Settings::PAGE_SIZE));
 }
 
 // Helper function to insert into overflow area and return the entry index
@@ -340,15 +320,71 @@ std::vector<PageEntry> Database::gather_overflow_entries(size_t start_index)
     return entries;
 }
 
-std::optional<uint64_t> Database::search(uint64_t key)
+std::optional<uint64_t> Database::search_wrapper(uint64_t key)
 {
     auto entry = search_for_entry(key);
     return entry ? std::make_optional(entry->get().value) : std::nullopt;
 }
 
-void Database::insert(uint64_t key, uint64_t value)
+void Database::print_wrapper()
 {
-    if (search(key))
+    std::cout << "================================================" << std::endl;
+    std::cout << "Index area" << std::endl;
+    std::cout << "================================================" << std::endl;
+
+    for (size_t i = 0; i < index_area.get_header().number_of_pages; ++i)
+    {
+        auto page = index_area.get_page(i);
+        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
+        for (size_t j = 0; j < page->number_of_entries; ++j)
+        {
+            std::cout << "\tEntry " << j << "\n\t\tstart_key: " << page->entries[j].start_key
+                      << "\n\t\tpage_index: " << page->entries[j].page_index << std::endl;
+        }
+    }
+
+    std::cout << "================================================" << std::endl;
+    std::cout << "Main area" << std::endl;
+    std::cout << "================================================" << std::endl;
+
+    std::cout << "Guardian overflow page index: " << (guardian.overflow_page_index == -1ULL ? "null" : std::to_string(guardian.overflow_page_index)) << '\n'
+              << std::endl;
+
+    for (size_t i = 0; i < main_area.get_header().number_of_pages; ++i)
+    {
+        auto page = main_area.get_page(i);
+        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
+        for (size_t j = 0; j < page->number_of_entries; ++j)
+        {
+            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key
+                      << "\n\t\tvalue: " << page->entries[j].value
+                      << "\n\t\toverflow_entry_index: "
+                      << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index))
+                      << (page->entries[j].was_deleted ? "\n\t\tdeleted: true" : "") << std::endl;
+        }
+    }
+
+    std::cout << "================================================" << std::endl;
+    std::cout << "Overflow area" << std::endl;
+    std::cout << "================================================" << std::endl;
+
+    for (size_t i = 0; i < overflow_area.get_header().number_of_pages; ++i)
+    {
+        auto page = overflow_area.get_page(i);
+        std::cout << "Page " << i << " number of entries: " << page->number_of_entries << std::endl;
+        for (size_t j = 0; j < page->number_of_entries; ++j)
+        {
+            std::cout << "\tEntry " << j << "\n\t\tkey: " << page->entries[j].key
+                      << "\n\t\tvalue: " << page->entries[j].value
+                      << "\n\t\toverflow_entry_index: " << (page->entries[j].overflow_entry_index == -1ULL ? "null" : std::to_string(page->entries[j].overflow_entry_index))
+                      << (page->entries[j].was_deleted ? "\n\t\tdeleted: true" : "") << std::endl;
+        }
+    }
+}
+
+void Database::insert_wrapper(uint64_t key, uint64_t value)
+{
+    if (search_wrapper(key))
     {
         throw std::runtime_error("Key already exists");
     }
@@ -359,10 +395,10 @@ void Database::insert(uint64_t key, uint64_t value)
     // Handle insertion into guardian (overflow area)
     if (entry_pos == -1ULL)
     {
-        auto overflow_pos = find_overflow_position();
+        auto [overflow_pos, overflow_area_fill] = find_overflow_position();
 
         // If overflow area is full, reorganise and try again
-        if (!overflow_pos)
+        if (!overflow_pos || overflow_area_fill >= Settings::GAMMA)
         {
             std::cout << "Overflow area is full, reorganising" << std::endl;
             reorganise();
@@ -420,8 +456,8 @@ void Database::insert(uint64_t key, uint64_t value)
     }
 
     // Insert into overflow area
-    auto overflow_pos = find_overflow_position();
-    if (!overflow_pos)
+    auto [overflow_pos, overflow_area_fill] = find_overflow_position();
+    if (!overflow_pos || overflow_area_fill >= Settings::GAMMA)
     {
         std::cout << "Overflow area is full, reorganising" << std::endl;
         reorganise();
@@ -442,7 +478,7 @@ void Database::insert(uint64_t key, uint64_t value)
     }
 }
 
-void Database::update(uint64_t key, uint64_t value)
+void Database::update_wrapper(uint64_t key, uint64_t value)
 {
     auto entry = search_for_entry(key);
     if (!entry)
@@ -452,7 +488,7 @@ void Database::update(uint64_t key, uint64_t value)
     entry->get().value = value;
 }
 
-void Database::remove(uint64_t key)
+void Database::remove_wrapper(uint64_t key)
 {
     auto entry = search_for_entry(key);
     if (!entry)
@@ -463,7 +499,7 @@ void Database::remove(uint64_t key)
     entry->get().was_deleted = 1;
 }
 
-void Database::reorganise()
+void Database::reorganise_wrapper()
 {
     PageBuffer<IndexPage, Header> new_index_area(Settings::TEMP_INDEX_FILE_PATH, true);
     PageBuffer<Page, MainAreaHeader> new_main_area(Settings::TEMP_MAIN_FILE_PATH, true);
@@ -550,6 +586,65 @@ void Database::reorganise()
     index_area = std::move(new_index_area);
     main_area = std::move(new_main_area);
     overflow_area = std::move(new_overflow_area);
+}
+
+void Database::print_stats_after_operation(OperationType operation)
+{
+    std::cout << "Operation: " << operation << std::endl;
+    std::cout << "Index area reads: " << index_area.get_read_count() << "\n";
+    std::cout << "Index area writes: " << index_area.get_write_count() << "\n";
+
+    std::cout << "Main area reads: " << main_area.get_read_count() << "\n";
+    std::cout << "Main area writes: " << main_area.get_write_count() << "\n";
+
+    std::cout << "Overflow area reads: " << overflow_area.get_read_count() << "\n";
+    std::cout << "Overflow area writes: " << overflow_area.get_write_count() << "\n";
+}
+
+void Database::clear_counters()
+{
+    main_area.clear_counters();
+    index_area.clear_counters();
+    overflow_area.clear_counters();
+}
+
+std::optional<uint64_t> Database::search(uint64_t key)
+{
+    clear_counters();
+    auto result = search_wrapper(key);
+    print_stats_after_operation(OperationType::SEARCH);
+
+    return result;
+}
+
+void Database::insert(uint64_t key, uint64_t value)
+{
+    clear_counters();
+    insert_wrapper(key, value);
+    print_stats_after_operation(OperationType::INSERT);
+}
+
+void Database::update(uint64_t key, uint64_t value)
+{
+    clear_counters();
+    update_wrapper(key, value);
+    print_stats_after_operation(OperationType::UPDATE);
+}
+
+void Database::remove(uint64_t key)
+{
+    clear_counters();
+
+    remove_wrapper(key);
+    print_stats_after_operation(OperationType::REMOVE);
+}
+
+void Database::reorganise()
+{
+    clear_counters();
+
+    reorganise_wrapper();
+    print_stats_after_operation(OperationType::REORGANISE);
 }
 
 void Database::flush()

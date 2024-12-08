@@ -21,6 +21,8 @@ namespace Settings
     // TODO: Implement
     constexpr size_t INITIAL_NUMBER_OF_PAGES_IN_OVERFLOW_AREA = 1;
 
+    // When the number of records in overflow area is greater than GAMMA * PAGE_SIZE, reorganisation is performed
+    constexpr double GAMMA = 0.5;
     // How many pages should be in overflow area after reorganisation
     // Test are written with BETA = 0.5
     constexpr double BETA = 1 / 8;
