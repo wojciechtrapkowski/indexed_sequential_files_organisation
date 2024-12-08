@@ -220,5 +220,6 @@ public:
                 write_page_to_disk(*pages[i]);
             }
         }
+        file.flush();
     }
 };

@@ -6,6 +6,13 @@
 \usepackage{listings}
 \usepackage{amsmath}
 \usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{rotating}
+\usepackage{pgfplots}
+\usepackage{pgfplotstable}
+\usepackage{adjustbox}
+\usepackage{seqsplit}
+\pgfplotsset{compat=1.18}
 
 \title{Implementacja i analiza indeksowo-sekwencyjnej organizacji plików}
 \author{Wojciech Trapkowski}
@@ -69,7 +76,7 @@ W implementacji rekord jest reprezentowany jako pojedyncza liczba całkowita typ
 \subsection{Interfejs użytkownika}
 Program oferuje interaktywny interfejs wiersza poleceń oraz możliwość wykonywania komend z pliku. Dostępne są następujące tryby pracy:
 \begin{itemize}
-    \item Tryb interaktywny - oznaczony znakiem zachęty ">"
+    \item Tryb interaktywny - oznaczony znakiem zachęty >
     \item Tryb wsadowy - wykonywanie komend z pliku
 \end{itemize}
 
@@ -99,39 +106,149 @@ Program obsługuje następujące polecenia:
 \section{Eksperymenty}
 \subsection{Metodologia}
 \begin{itemize}
-    \item Opis przeprowadzonych testów
-    \item Badane parametry
-    \item Mierzone metryki
+    \item Przeprowadzone testy obejmowały analizę wydajności programu poprzez żonglowanie wszystkimi kluczowymi parametrami:
+    \begin{itemize}
+        \item Rozmiar strony (współczynnik blokowania pliku)
+        \item Rozmiar bufora przechowującego strony w pamięci operacyjnej
+        \item Liczba rekordów w bazie danych
+        \item Współczynnik wypełnienia strony ($\alpha$)
+        \item Współczynnik rozmiaru obszaru przepełnień ($\beta$)
+        \item Próg reorganizacji ($\gamma$)
+    \end{itemize}
+
+    \item Mierzone metryki obejmowały:
+    \begin{itemize}
+        \item Liczba operacji dyskowych przy:
+        \begin{itemize}
+            \item Usuwaniu rekordów
+            \item Aktualizacji rekordów
+            \item Wyszukiwaniu rekordów
+            \item Wstawianiu nowych rekordów
+            \item Reorganizacji struktury
+        \end{itemize}
+        \item Zużycie pamięci przez pliki bazy danych
+    \end{itemize}
+
+    \item Metodyka pomiarów:
+    \begin{itemize}
+        \item Każda operacja była wykonywana na świeżo zainicjalizowanej bazie danych
+        \item Liczniki operacji I/O były zerowane przed każdą operacją
+        \item Pomiary były agregowane dla serii identycznych operacji w celu uzyskania średnich wartości
+        \item Testy przeprowadzano dla różnych kombinacji parametrów, aby zbadać ich wzajemny wpływ
+    \end{itemize}
 \end{itemize}
+
 
 \subsection{Wyniki}
-\subsubsection{Wpływ rozmiaru strony}
-[Tu umieść wykresy i analizę wpływu rozmiaru strony]
+Tabela 1 przedstawia wyniki przeprowadzonych testów wydajnościowych. Poszczególne kolumny reprezentują:
 
-\subsubsection{Wpływ współczynnika $\alpha$}
-[Tu umieść wykresy i analizę wpływu współczynnika wypełnienia]
-
-\subsubsection{Wpływ współczynnika $\beta$}
-[Tu umieść wykresy i analizę wpływu rozmiaru obszaru przepełnień]
-
-\subsection{Analiza złożoności operacji}
 \begin{itemize}
-    \item Wstawianie
-    \item Wyszukiwanie
-    \item Usuwanie
-    \item Reorganizacja
+    \item Kolumny operacji dyskowych (I/O):
+    \begin{itemize}
+        \item A - Liczba operacji dyskowych przy usuwaniu rekordów
+        \item B - Liczba operacji dyskowych przy aktualizacji istniejących rekordów
+        \item C - Liczba operacji dyskowych przy wyszukiwaniu rekordów
+        \item D - Liczba operacji dyskowych przy wstawianiu nowych rekordów
+        \item E - Liczba operacji dyskowych podczas reorganizacji struktury
+    \end{itemize}
+    
+    \item Parametry pamięciowe:
+    \begin{itemize}
+        \item F - Całkowita pamięć zajmowana przez pliki bazy danych (KB)
+        \item G - Współczynnik blokowania pliku (rozmiar strony)
+        \item H - Rozmiar bufora przechowującego strony w pamięci operacyjnej
+    \end{itemize}
+    
+    \item Parametry konfiguracyjne:
+    \begin{itemize}
+        \item I - Liczba rekordów w bazie danych
+        \item J - Współczynnik wypełnienia strony ($\alpha$)
+        \item K - Współczynnik rozmiaru obszaru przepełnień ($\beta$)
+        \item L - Próg reorganizacji ($\gamma$)
+    \end{itemize}
 \end{itemize}
+
+\begin{figure}[h]
+\begin{adjustbox}{width=1.25\textwidth, center}
+\pgfplotstabletypeset[
+    col sep=semicolon,
+    every head row/.style={
+        before row=\hline,
+        after row=\hline
+    },
+    every last row/.style={after row=\hline},
+    every row/.style={before row=\vspace{-2pt}},
+    font=\footnotesize,
+    every column/.style={
+        column type=p{1.2cm},
+        text width=1.2cm,
+        align=center
+    },
+    columns/0/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Liczba op.\\ dyskowych\\ przy\\ usuwaniu\hspace{0.3cm}\end{sideways}}},
+    columns/1/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Liczba op.\\ dyskowych\\ przy\\ aktualizacji\hspace{0.3cm}\end{sideways}}},
+    columns/2/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Liczba op.\\ dyskowych\\ przy\\ wyszukiwaniu\hspace{0.3cm}\end{sideways}}},
+    columns/3/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Liczba op.\\ dyskowych\\ przy\\ wstawianiu\hspace{0.3cm}\end{sideways}}},
+    columns/4/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Liczba op.\\ dyskowych\\ przy\\ reorganizacji\hspace{0.3cm}\end{sideways}}},
+    columns/5/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Pamięć\\ (KB)\hspace{0.3cm}\end{sideways}}},
+    columns/6/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Rozmiar\\ strony\hspace{0.3cm}\end{sideways}}},
+    columns/7/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Rozmiar\\ bufora\hspace{0.3cm}\end{sideways}}},
+    columns/8/.style={int detect, column name={\begin{sideways}\footnotesize\hspace{0.3cm}Liczba\\ rekordów\hspace{0.3cm}\end{sideways}}},
+    columns/9/.style={
+        column name={\begin{sideways}\footnotesize\hspace{0.3cm}$\alpha$\hspace{0.3cm}\end{sideways}},
+        string replace*={0comma50}{0,50},
+        string replace*={0comma75}{0,75}
+    },
+    columns/10/.style={
+        column name={\begin{sideways}\footnotesize\hspace{0.3cm}$\beta$\hspace{0.3cm}\end{sideways}},
+        string replace*={0comma50}{0,50},
+        string replace*={0comma75}{0,75}
+    }
+]{data.csv}
+\end{adjustbox} 
+\end{figure}
 
 \section{Wnioski}
 \begin{itemize}
-    \item Optymalne wartości parametrów
-    \item Zalecane zastosowania
-    \item Ograniczenia metody
-\end{itemize}
+    \item Wpływ rozmiaru strony:
+    \begin{itemize}
+        \item Większy rozmiar strony znacząco redukuje liczbę operacji I/O
+        \item Jednak zbyt duży rozmiar strony może prowadzić do nieefektywnego wykorzystania pamięci
+        \item Optymalny rozmiar strony zależy od charakterystyki danych i częstotliwości operacji
+    \end{itemize}
 
-\section{Bibliografia}
-\begin{thebibliography}{9}
-    % Tu dodaj źródła
-\end{thebibliography}
+    \item Wpływ rozmiaru bufora:
+    \begin{itemize}
+        \item Większy bufor stron znacząco zmniejsza liczbę fizycznych operacji I/O
+        \item Szczególnie efektywny przy operacjach wyszukiwania i aktualizacji
+        \item Należy znaleźć kompromis między wydajnością a zużyciem pamięci operacyjnej
+    \end{itemize}
+
+    \item Wpływ współczynnika $\alpha$ (wypełnienie strony):
+    \begin{itemize}
+        \item Wartości w przedziale 0.5 - 0.75 okazały się optymalne
+        \item Niższe wartości $\alpha$ skutkują większym rozmiarem plików
+        \item Wyższe wartości $\alpha$ zwiększają częstotliwość reorganizacji i liczbę operacji przy wstawianiu
+    \end{itemize}
+
+    \item Wpływ współczynnika $\beta$ (rozmiar obszaru przepełnień):
+    \begin{itemize}
+        \item Silnie wpływa na całkowite zużycie pamięci
+        \item Mniejsze wartości $\beta$ są zalecane dla optymalizacji przestrzeni
+        \item Zbyt niski $\beta$ może prowadzić do częstszych reorganizacji
+    \end{itemize}
+
+    \item Wpływ współczynnika $\gamma$ (próg reorganizacji):
+    \begin{itemize}
+        \item Niższe wartości $\gamma$ prowadzą do częstszych reorganizacji, ale utrzymują strukturę w lepszej kondycji
+        \item Wyższe wartości $\gamma$ zmniejszają częstotliwość reorganizacji, ale mogą prowadzić do degradacji wydajności wyszukiwania
+        \item Optymalny $\gamma$ zależy od proporcji operacji odczytu do zapisu
+    \end{itemize}
+
+    \item Ograniczenia metody:
+    \begin{itemize}
+        \item Koszt reorganizacji może być znaczący dla dużych zbiorów danych
+        \item Wymaga odpowiedniego dostrojenia parametrów do konkretnego przypadku użycia
+    \end{itemize}
+\end{itemize}
 
 \end{document}
